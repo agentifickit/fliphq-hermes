@@ -30,6 +30,7 @@ export function listClients() {
     const configPath = path.join(clientDir, 'config.yaml');
     const soulPath = path.join(clientDir, 'SOUL.md');
     const channelsPath = path.join(clientDir, 'channels.yaml');
+    const mcpPath = path.join(clientDir, 'mcp.yaml');
     
     let config = {};
     if (fs.existsSync(configPath)) {
@@ -41,6 +42,13 @@ export function listClients() {
       const channels = readYaml(channelsPath);
       config.whatsapp = { ...config.whatsapp, ...channels.whatsapp };
       config.slack_connect = { ...config.slack_connect, ...channels.slack_connect };
+    }
+    
+    // Count MCP tools from mcp.yaml
+    let mcpCount = 0;
+    if (fs.existsSync(mcpPath)) {
+      const mcp = readYaml(mcpPath);
+      mcpCount = Object.keys(mcp.tools || {}).length;
     }
     
     let soulContent = '';
@@ -64,6 +72,7 @@ export function listClients() {
       config: {
         model: config.model?.default || 'not set',
         channels: extractChannels(config),
+        mcpCount,
         mcpServers: Object.keys(config.mcp_servers || {}),
       },
     });

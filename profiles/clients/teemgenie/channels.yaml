@@ -1,0 +1,21 @@
+# TeemGenie Client Channels
+# WhatsApp group and Slack Connect configuration
+
+whatsapp:
+  enabled: true
+  groups:
+    # TeemGenie WhatsApp group (FlipHQ number sits in this group)
+    # Replace with actual group ID from Evolution API
+    "1203630123456789":
+      name: "TeemGenie Team"
+      added_at: "2026-09-08T00:00:00Z"
+
+slack_connect:
+  enabled: true
+  channels:
+    # TeemGenie Slack Connect channel
+    # Replace with actual channel ID
+    C0AQ4C19F25:
+      name: "#teemgenie-connect"
+      workspace: "teemgenie.slack.com"
+      added_at: "2026-09-08T00:00:00Z"

@@ -59,7 +59,7 @@ function renderClientCard(client) {
         ${channels || '<span class="channel-badge">No channels</span>'}
       </div>
       <div class="client-meta">
-        <span>MCP: ${client.config?.mcpServers?.length || 0}</span>
+        <span>MCP: ${client.config?.mcpCount || 0}</span>
         <span>Model: ${client.config?.model || 'default'}</span>
       </div>
     </div>
