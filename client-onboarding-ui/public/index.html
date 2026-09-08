@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlipHQ — Client Onboarding</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">FlipHQ</span>
+      </div>
+      <nav>
+        <a href="/" class="active">Clients</a>
+        <a href="#" onclick="showInternalStatus(); return false;">Internal</a>
+        <a href="#" onclick="showWhatsAppStatus(); return false;">WhatsApp Router</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="showCreateModal()">+ New Client</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1>Client Agents</h1>
+      <p class="subtitle">Manage client onboarding, channels, and gateway status</p>
+    </div>
+
+    <div id="client-list" class="client-grid">
+      <!-- Client cards rendered here -->
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <p>No clients yet. Create your first client agent to get started.</p>
+    </div>
+  </main>
+
+  <!-- Create Client Modal -->
+  <div id="create-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="hideCreateModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create New Client</h2>
+        <button class="modal-close" onclick="hideCreateModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="client-name">Client Name *</label>
+          <input type="text" id="client-name" placeholder="e.g., TeemGenie Labs" required>
+        </div>
+        <div class="form-group">
+          <label for="client-description">Description</label>
+          <textarea id="client-description" placeholder="Brief description of the client..." rows="3"></textarea>
+        </div>
+        <p class="form-hint">This will create a new client profile from the template. You can configure channels and tools after creation.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideCreateModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createClient()">Create Client</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Detail Modal -->
+  <div id="detail-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="hideDetailModal()"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="detail-title">Client Details</h2>
+        <button class="modal-close" onclick="hideDetailModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('overview')">Overview</button>
+          <button class="tab" onclick="switchTab('config')">Config</button>
+          <button class="tab" onclick="switchTab('channels')">Channels</button>
+          <button class="tab" onclick="switchTab('logs')">Logs</button>
+        </div>
+        
+        <div id="tab-overview" class="tab-content active">
+          <div class="status-row">
+            <div class="status-item">
+              <span class="status-label">Gateway</span>
+              <span id="detail-gateway-status" class="status-badge">unknown</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">PID</span>
+              <span id="detail-gateway-pid" class="status-value">—</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Uptime</span>
+              <span id="detail-gateway-uptime" class="status-value">—</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-success" onclick="startGateway()">Start</button>
+            <button class="btn btn-danger" onclick="stopGateway()">Stop</button>
+            <button class="btn btn-secondary" onclick="restartGateway()">Restart</button>
+            <button class="btn btn-primary" onclick="deployClient()">Deploy</button>
+          </div>
+          <div id="detail-channels" class="channel-list">
+            <!-- Channels rendered here -->
+          </div>
+        </div>
+        
+        <div id="tab-config" class="tab-content">
+          <div class="form-group">
+            <label>config.yaml</label>
+            <textarea id="detail-config-yaml" class="code-editor" rows="20"></textarea>
+          </div>
+          <div class="form-group">
+            <label>SOUL.md</label>
+            <textarea id="detail-soul-md" class="code-editor" rows="10"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="saveConfig()">Save Changes</button>
+        </div>
+        
+        <div id="tab-channels" class="tab-content">
+          <p class="info-text">Channel configuration coming in Phase 2</p>
+        </div>
+        
+        <div id="tab-logs" class="tab-content">
+          <div class="log-controls">
+            <button class="btn btn-secondary" onclick="refreshLogs()">Refresh</button>
+            <label>Lines: <input type="number" id="log-lines" value="100" min="10" max="1000"></label>
+          </div>
+          <div id="gateway-logs" class="log-viewer">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
