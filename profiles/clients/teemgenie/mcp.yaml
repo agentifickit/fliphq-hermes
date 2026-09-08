@@ -1,29 +1,24 @@
-# TeemGenie MCP Tools
-# Performance marketing and analytics integrations
-
 tools:
   posthog:
-    api_key: "${POSTHOG_TEEMGENIE_API_KEY}"
-    project_id: "${POSTHOG_TEEMGENIE_PROJECT_ID}"
-    base_url: "https://app.posthog.com"
+    api_key: ${POSTHOG_TEEMGENIE_API_KEY}
+    project_id: ${POSTHOG_TEEMGENIE_PROJECT_ID}
+    base_url: https://app.posthog.com
     enabled: true
-    added_at: "2026-09-08T00:00:00Z"
-
+    added_at: '2026-09-08T00:00:00Z'
+    updated_at: '2026-09-08T12:14:57.047Z'
   google_analytics:
-    property_id: "${GA4_TEEMGENIE_PROPERTY_ID}"
-    credentials_json: "/secrets/teemgenie-ga4.json"
+    property_id: ${GA4_TEEMGENIE_PROPERTY_ID}
+    credentials_json: /secrets/teemgenie-ga4.json
     enabled: true
-    added_at: "2026-09-08T00:00:00Z"
-
+    added_at: '2026-09-08T00:00:00Z'
   windsor:
-    api_key: "${WINDSON_TEEMGENIE_API_KEY}"
+    api_key: ${WINDSON_TEEMGENIE_API_KEY}
     enabled: true
-    added_at: "2026-09-08T00:00:00Z"
-
+    added_at: '2026-09-08T00:00:00Z'
   meta_ads:
-    app_id: "${META_TEEMGENIE_APP_ID}"
-    app_secret: "${META_TEEMGENIE_APP_SECRET}"
-    access_token: "${META_TEEMGENIE_ACCESS_TOKEN}"
-    ad_account_id: "${META_TEEMGENIE_AD_ACCOUNT_ID}"
+    app_id: ${META_TEEMGENIE_APP_ID}
+    app_secret: ${META_TEEMGENIE_APP_SECRET}
+    access_token: ${META_TEEMGENIE_ACCESS_TOKEN}
+    ad_account_id: ${META_TEEMGENIE_AD_ACCOUNT_ID}
     enabled: true
-    added_at: "2026-09-08T00:00:00Z"
+    added_at: '2026-09-08T00:00:00Z'
