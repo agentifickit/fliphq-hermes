@@ -563,13 +563,24 @@ function getToolName(toolId) {
 
 function showAddMcpTool() {
   document.getElementById('add-mcp-modal').style.display = 'flex';
-  loadAvailableTools();
-  document.getElementById('mcp-tool-form').style.display = 'none';
+  document.getElementById('mcp-step-select').style.display = 'block';
+  document.getElementById('mcp-step-config').style.display = 'none';
+  document.getElementById('mcp-back-btn').style.display = 'none';
   document.getElementById('add-mcp-btn').style.display = 'none';
+  loadAvailableTools();
 }
 
 function hideAddMcpModal() {
   document.getElementById('add-mcp-modal').style.display = 'none';
+}
+
+function mcpBack() {
+  document.getElementById('mcp-step-select').style.display = 'block';
+  document.getElementById('mcp-step-config').style.display = 'none';
+  document.getElementById('mcp-back-btn').style.display = 'none';
+  document.getElementById('add-mcp-btn').style.display = 'none';
+  // Clear selection
+  document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('selected'));
 }
 
 async function loadAvailableTools() {
@@ -580,7 +591,7 @@ async function loadAvailableTools() {
     
     const grid = document.getElementById('tool-selector-grid');
     grid.innerHTML = availableTools.map(tool => `
-      <div class="tool-card" onclick="selectTool('${tool.id}')">
+      <div class="tool-card" onclick="selectTool('${tool.id}')" id="tool-card-${tool.id}">
         <span class="tool-icon">${tool.icon}</span>
         <div class="tool-name">${tool.name}</div>
         <div class="tool-desc">${tool.description}</div>
@@ -595,6 +606,11 @@ function selectTool(toolId) {
   const tool = availableTools.find(t => t.id === toolId);
   if (!tool) return;
   
+  // Show selection state
+  document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`tool-card-${toolId}`).classList.add('selected');
+  
+  // Populate form
   document.getElementById('mcp-form-title').textContent = `Configure ${tool.name}`;
   
   const fields = document.getElementById('mcp-form-fields');
@@ -609,7 +625,10 @@ function selectTool(toolId) {
     </div>
   `).join('');
   
-  document.getElementById('mcp-tool-form').style.display = 'block';
+  // Transition to step 2
+  document.getElementById('mcp-step-select').style.display = 'none';
+  document.getElementById('mcp-step-config').style.display = 'block';
+  document.getElementById('mcp-back-btn').style.display = 'inline-block';
   document.getElementById('add-mcp-btn').style.display = 'inline-block';
   document.getElementById('add-mcp-btn').dataset.toolId = toolId;
 }

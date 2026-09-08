@@ -172,21 +172,33 @@
         <button class="modal-close" onclick="hideAddMcpModal()">×</button>
       </div>
       <div class="modal-body">
-        <div class="tool-selector">
-          <h4>Select Tool</h4>
-          <div id="tool-selector-grid" class="tool-grid">
-            <!-- Tool templates rendered here -->
+        <div class="mcp-wizard">
+          <!-- Step 1: Tool Selection -->
+          <div id="mcp-step-select" class="mcp-step active">
+            <div class="mcp-step-header">
+              <span class="mcp-step-number">1</span>
+              <span class="mcp-step-title">Choose a tool to connect</span>
+            </div>
+            <div id="tool-selector-grid" class="tool-grid">
+              <!-- Tool templates rendered here -->
+            </div>
           </div>
-        </div>
-        <div id="mcp-tool-form" style="display: none;">
-          <h4 id="mcp-form-title">Configure Tool</h4>
-          <div id="mcp-form-fields">
-            <!-- Dynamic form fields here -->
+          
+          <!-- Step 2: Configuration -->
+          <div id="mcp-step-config" class="mcp-step" style="display: none;">
+            <div class="mcp-step-header">
+              <span class="mcp-step-number">2</span>
+              <span class="mcp-step-title" id="mcp-form-title">Configure Tool</span>
+            </div>
+            <div id="mcp-form-fields">
+              <!-- Dynamic form fields here -->
+            </div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="hideAddMcpModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="mcpBack()" id="mcp-back-btn" style="display: none;">Back</button>
         <button class="btn btn-primary" onclick="addMcpTool()" id="add-mcp-btn" style="display: none;">Add Tool</button>
       </div>
     </div>
