@@ -89,6 +89,10 @@ const wizardState = {
 function showCreateModal() {
   document.getElementById('wizard-modal').style.display = 'flex';
   resetWizard();
+  // Load available MCP tools for the wizard
+  if (availableTools.length === 0) {
+    loadAvailableTools();
+  }
 }
 
 function hideWizardModal() {
@@ -152,6 +156,10 @@ function wizardNext() {
   if (wizardStep < 4) {
     wizardStep++;
     updateWizardUI();
+    // Load MCP tools when navigating to step 3
+    if (wizardStep === 3 && availableTools.length === 0) {
+      loadAvailableTools();
+    }
   }
 }
 
