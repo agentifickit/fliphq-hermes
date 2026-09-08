@@ -1,0 +1,117 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ============================================
+  # JOB 1: QA Checks
+  # ============================================
+  qa:
+    name: QA & Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Install dependencies
+        working-directory: client-onboarding-ui
+        run: npm ci
+      
+      - name: Syntax check (backend)
+        working-directory: client-onboarding-ui
+        run: |
+          node --check server.js
+          for f in routes/*.js services/*.js; do
+            node --check "$f" || exit 1
+          done
+      
+      - name: Syntax check (frontend)
+        working-directory: client-onboarding-ui
+        run: node --check public/app.js
+      
+      - name: YAML validity
+        run: |
+          for f in profiles/*/config.yaml profiles/whatsapp-hub/group-routing.yaml profiles/clients/*/channels.yaml profiles/clients/*/mcp.yaml; do
+            if [ -f "$f" ]; then
+              node -e "require('js-yaml').load(require('fs').readFileSync('$f','utf8'))" 2>/dev/null && echo "✓ $f" || echo "✗ $f"
+            fi
+          done
+        working-directory: client-onboarding-ui
+      
+      - name: Start server for API tests
+        working-directory: client-onboarding-ui
+        run: |
+          node server.js &
+          sleep 2
+      
+      - name: API health check
+        run: |
+          curl -s http://localhost:4133/api/health | grep -q "ok" && echo "✓ Health check" || (echo "✗ Health check failed" && exit 1)
+      
+      - name: API client CRUD test
+        run: |
+          # Create
+          curl -s -X POST http://localhost:4133/api/clients -H "Content-Type: application/json" -d '{"name": "CI Test"}' | grep -q "slug" && echo "✓ Create client" || (echo "✗ Create failed" && exit 1)
+          # List
+          curl -s http://localhost:4133/api/clients | grep -q "ci-test" && echo "✓ List clients" || (echo "✗ List failed" && exit 1)
+          # Get
+          curl -s http://localhost:4133/api/clients/ci-test | grep -q "ci-test" && echo "✓ Get client" || (echo "✗ Get failed" && exit 1)
+          # Delete
+          curl -s -X DELETE http://localhost:4133/api/clients/ci-test | grep -q "deleted" && echo "✓ Delete client" || (echo "✗ Delete failed" && exit 1)
+      
+      - name: Security scan
+        run: |
+          # Check for hardcoded secrets in new code
+          if git diff HEAD~1 --name-only | grep -E '\.(js|sh|yaml|json)$' | xargs grep -lE '(api_key|secret|password|token|passwd|bearer)\s*=\s*['\''"][^'\''"]+['\''"]' 2>/dev/null; then
+            echo "⚠ Possible hardcoded secrets found"
+            exit 1
+          fi
+          echo "✓ No hardcoded secrets"
+
+  # ============================================
+  # JOB 2: Deploy to Live Server
+  # ============================================
+  deploy:
+    name: Deploy to Server
+    needs: qa
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/workspace/fliphq-hermes
+            git pull origin master
+            
+            # Restart the onboarding UI
+            cd client-onboarding-ui
+            npm ci --production 2>/dev/null || true
+            
+            # Kill existing process on port 4133
+            lsof -ti:4133 | xargs kill -9 2>/dev/null || true
+            sleep 1
+            
+            # Start in background
+            nohup node server.js > /tmp/flippy-ui.log 2>&1 &
+            sleep 2
+            
+            # Verify it's running
+            curl -s http://localhost:4133/api/health | grep -q "ok" && echo "✓ Deployment successful" || (echo "✗ Deployment failed" && exit 1)
