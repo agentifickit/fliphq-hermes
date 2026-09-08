@@ -127,6 +127,8 @@ async function openClientDetail(slug) {
     const client = data.client;
     
     document.getElementById('detail-title').textContent = client.slug;
+    document.getElementById('overview-client-name').textContent = client.slug;
+    document.getElementById('overview-profile-path').textContent = client.path;
     document.getElementById('detail-config-yaml').value = JSON.stringify(client.config, null, 2);
     document.getElementById('detail-soul-md').value = client.soulContent;
     
@@ -139,10 +141,33 @@ async function openClientDetail(slug) {
     // Load MCP tools
     await loadMcpTools(slug);
     
+    // Update stats
+    updateOverviewStats(slug);
+    
     // Show modal
     document.getElementById('detail-modal').style.display = 'flex';
   } catch (err) {
     showToast('Failed to load client details', 'error');
+  }
+}
+
+async function updateOverviewStats(slug) {
+  try {
+    // Count channels
+    const channelsRes = await fetch(`/api/clients/${slug}/channels`);
+    const channelsData = await channelsRes.json();
+    const channelCount = channelsData.channels.whatsapp.groups.length + channelsData.channels.slack_connect.channels.length;
+    document.getElementById('stat-channels').textContent = channelCount;
+    
+    // Count MCP tools
+    const mcpRes = await fetch(`/api/clients/${slug}/mcp-tools`);
+    const mcpData = await mcpRes.json();
+    document.getElementById('stat-mcp-tools').textContent = Object.keys(mcpData.tools || {}).length;
+    
+    // Tasks placeholder (would need Notion API)
+    document.getElementById('stat-tasks').textContent = '—';
+  } catch (err) {
+    // Ignore stats errors
   }
 }
 

@@ -83,28 +83,57 @@
         </div>
         
         <div id="tab-overview" class="tab-content active">
-          <div class="status-row">
-            <div class="status-item">
-              <span class="status-label">Gateway</span>
-              <span id="detail-gateway-status" class="status-badge">unknown</span>
+          <div class="overview-header">
+            <div class="overview-title">
+              <h3 id="overview-client-name">Client Name</h3>
+              <p id="overview-client-desc" class="overview-description">Description</p>
             </div>
-            <div class="status-item">
-              <span class="status-label">PID</span>
-              <span id="detail-gateway-pid" class="status-value">—</span>
-            </div>
-            <div class="status-item">
-              <span class="status-label">Uptime</span>
-              <span id="detail-gateway-uptime" class="status-value">—</span>
+            <div class="overview-status">
+              <span id="overview-gateway-status" class="status-badge">● unknown</span>
             </div>
           </div>
-          <div class="action-row">
-            <button class="btn btn-success" onclick="startGateway()">Start</button>
-            <button class="btn btn-danger" onclick="stopGateway()">Stop</button>
-            <button class="btn btn-secondary" onclick="restartGateway()">Restart</button>
-            <button class="btn btn-primary" onclick="deployClient()">Deploy</button>
+          
+          <div class="overview-stats">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-channels">0</div>
+              <div class="stat-label">Channels</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-mcp-tools">0</div>
+              <div class="stat-label">MCP Tools</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-tasks">0</div>
+              <div class="stat-label">Active Tasks</div>
+            </div>
           </div>
-          <div id="detail-channels" class="channel-list">
-            <!-- Channels rendered here -->
+          
+          <div class="overview-actions">
+            <div class="action-group">
+              <span class="action-label">Gateway</span>
+              <div class="action-buttons">
+                <button class="btn btn-success" onclick="startGateway()">Start</button>
+                <button class="btn btn-danger" onclick="stopGateway()">Stop</button>
+                <button class="btn btn-warning" onclick="restartGateway()">Restart</button>
+              </div>
+            </div>
+            <div class="action-group">
+              <span class="action-label">Code</span>
+              <div class="action-buttons">
+                <button class="btn btn-primary" onclick="deployClient()">Deploy</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="overview-info">
+            <div class="info-row">
+              <span class="info-label">Profile Path</span>
+              <span id="overview-profile-path" class="info-value">—</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Created</span>
+              <span id="overview-created" class="info-value">—</span>
+            </div>
           </div>
         </div>
         
