@@ -75,45 +75,256 @@ function getChannelIcon(channel) {
   return icons[channel] || '🔗';
 }
 
-// ===== Create Client =====
+// ===== Onboarding Wizard =====
+
+let wizardStep = 1;
+const wizardState = {
+  name: '',
+  description: '',
+  whatsappGroups: [],
+  slackChannels: [],
+  mcpTools: [],
+};
 
 function showCreateModal() {
-  document.getElementById('create-modal').style.display = 'flex';
-  document.getElementById('client-name').value = '';
-  document.getElementById('client-description').value = '';
+  document.getElementById('wizard-modal').style.display = 'flex';
+  resetWizard();
 }
 
-function hideCreateModal() {
-  document.getElementById('create-modal').style.display = 'none';
+function hideWizardModal() {
+  document.getElementById('wizard-modal').style.display = 'none';
+  resetWizard();
 }
 
-async function createClient() {
-  const name = document.getElementById('client-name').value.trim();
-  const description = document.getElementById('client-description').value.trim();
+function resetWizard() {
+  wizardStep = 1;
+  wizardState.name = '';
+  wizardState.description = '';
+  wizardState.whatsappGroups = [];
+  wizardState.slackChannels = [];
+  wizardState.mcpTools = [];
   
-  if (!name) {
-    showToast('Client name is required', 'error');
-    return;
+  document.getElementById('wizard-client-name').value = '';
+  document.getElementById('wizard-client-description').value = '';
+  
+  updateWizardUI();
+  renderWizardChannels();
+  renderWizardMcpTools();
+}
+
+function updateWizardUI() {
+  // Update step indicators
+  for (let i = 1; i <= 4; i++) {
+    const step = document.getElementById(`wizard-step-${i}`);
+    step.classList.remove('active', 'completed');
+    if (i === wizardStep) step.classList.add('active');
+    else if (i < wizardStep) step.classList.add('completed');
   }
   
+  // Show/hide content
+  for (let i = 1; i <= 4; i++) {
+    const content = document.getElementById(`wizard-content-${i}`);
+    content.style.display = i === wizardStep ? 'block' : 'none';
+  }
+  
+  // Update buttons
+  document.getElementById('wizard-back-btn').style.display = wizardStep > 1 ? 'inline-block' : 'none';
+  document.getElementById('wizard-next-btn').style.display = wizardStep < 4 ? 'inline-block' : 'none';
+  document.getElementById('wizard-deploy-btn').style.display = wizardStep === 4 ? 'inline-block' : 'none';
+  
+  // Update review if on step 4
+  if (wizardStep === 4) {
+    updateReview();
+  }
+}
+
+function wizardNext() {
+  if (wizardStep === 1) {
+    const name = document.getElementById('wizard-client-name').value.trim();
+    if (!name) {
+      showToast('Client name is required', 'error');
+      return;
+    }
+    wizardState.name = name;
+    wizardState.description = document.getElementById('wizard-client-description').value.trim();
+  }
+  
+  if (wizardStep < 4) {
+    wizardStep++;
+    updateWizardUI();
+  }
+}
+
+function wizardBack() {
+  if (wizardStep > 1) {
+    wizardStep--;
+    updateWizardUI();
+  }
+}
+
+function renderWizardChannels() {
+  const waList = document.getElementById('wizard-whatsapp-groups');
+  if (wizardState.whatsappGroups.length > 0) {
+    waList.innerHTML = wizardState.whatsappGroups.map(g => `
+      <div class="channel-item">
+        <div>
+          <div>${escapeHtml(g.name)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${g.groupId}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="removeWizardWhatsApp('${g.groupId}')">Remove</button>
+      </div>
+    `).join('');
+  } else {
+    waList.innerHTML = '<p class="info-text">No WhatsApp groups added</p>';
+  }
+  
+  const slackList = document.getElementById('wizard-slack-channels');
+  if (wizardState.slackChannels.length > 0) {
+    slackList.innerHTML = wizardState.slackChannels.map(c => `
+      <div class="channel-item">
+        <div>
+          <div>${escapeHtml(c.name)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${c.channelId}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="removeWizardSlack('${c.channelId}')">Remove</button>
+      </div>
+    `).join('');
+  } else {
+    slackList.innerHTML = '<p class="info-text">No Slack channels added</p>';
+  }
+}
+
+function renderWizardMcpTools() {
+  const list = document.getElementById('wizard-mcp-tools');
+  if (wizardState.mcpTools.length > 0) {
+    list.innerHTML = wizardState.mcpTools.map(t => `
+      <div class="mcp-tool-card">
+        <div class="mcp-tool-header">
+          <span class="mcp-tool-icon">${getToolIcon(t.id)}</span>
+          <div class="mcp-tool-info">
+            <div class="mcp-tool-name">${getToolName(t.id)}</div>
+          </div>
+        </div>
+        <div class="mcp-tool-actions">
+          <button class="btn btn-danger btn-sm" onclick="removeWizardMcpTool('${t.id}')">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    list.innerHTML = '<p class="info-text">No MCP tools selected</p>';
+  }
+}
+
+function updateReview() {
+  document.getElementById('review-name').textContent = wizardState.name || '—';
+  document.getElementById('review-desc').textContent = wizardState.description || '—';
+  document.getElementById('review-whatsapp').textContent = wizardState.whatsappGroups.length;
+  document.getElementById('review-slack').textContent = wizardState.slackChannels.length;
+  
+  const mcpList = document.getElementById('review-mcp-tools');
+  if (wizardState.mcpTools.length > 0) {
+    mcpList.innerHTML = wizardState.mcpTools.map(t => 
+      `<span class="tag">${getToolIcon(t.id)} ${getToolName(t.id)}</span>`
+    ).join('');
+  } else {
+    mcpList.innerHTML = '<span class="info-text">None selected</span>';
+  }
+}
+
+async function wizardDeploy() {
+  showToast('Creating client...', 'info');
+  
   try {
-    const res = await fetch('/api/clients', {
+    // Create client
+    const createRes = await fetch('/api/clients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify({ name: wizardState.name, description: wizardState.description }),
     });
     
-    if (!res.ok) {
-      const data = await res.json();
+    if (!createRes.ok) {
+      const data = await createRes.json();
       throw new Error(data.error);
     }
     
-    hideCreateModal();
-    showToast('Client created!', 'success');
+    const { client } = await createRes.json();
+    const slug = client.slug;
+    
+    // Add WhatsApp groups
+    for (const group of wizardState.whatsappGroups) {
+      await fetch(`/api/clients/${slug}/channels/whatsapp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupId: group.groupId, groupName: group.name }),
+      });
+    }
+    
+    // Add Slack channels
+    for (const channel of wizardState.slackChannels) {
+      await fetch(`/api/clients/${slug}/channels/slack`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId: channel.channelId, channelName: channel.name }),
+      });
+    }
+    
+    // Add MCP tools
+    for (const tool of wizardState.mcpTools) {
+      await fetch(`/api/clients/${slug}/mcp-tools/${tool.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tool.config),
+      });
+    }
+    
+    hideWizardModal();
+    showToast('Client created successfully!', 'success');
     loadClients();
   } catch (err) {
     showToast(err.message, 'error');
   }
+}
+
+// Wizard channel/tool management
+function wizardAddWhatsAppGroup() {
+  const groupId = prompt('Enter WhatsApp group ID (bare number, e.g., 1203630123456789):');
+  if (!groupId) return;
+  const groupName = prompt('Enter group name:') || `Group ${groupId}`;
+  
+  wizardState.whatsappGroups.push({ groupId: groupId.replace(/@g\.us$/, ''), name: groupName });
+  renderWizardChannels();
+}
+
+function removeWizardWhatsApp(groupId) {
+  wizardState.whatsappGroups = wizardState.whatsappGroups.filter(g => g.groupId !== groupId);
+  renderWizardChannels();
+}
+
+function wizardAddSlackChannel() {
+  const channelId = prompt('Enter Slack channel ID (e.g., C0AQ4C19F25):');
+  if (!channelId) return;
+  const channelName = prompt('Enter channel name:') || `Channel ${channelId}`;
+  
+  wizardState.slackChannels.push({ channelId, name: channelName });
+  renderWizardChannels();
+}
+
+function removeWizardSlack(channelId) {
+  wizardState.slackChannels = wizardState.slackChannels.filter(c => c.channelId !== channelId);
+  renderWizardChannels();
+}
+
+function wizardAddMcpTool() {
+  document.getElementById('add-mcp-modal').style.display = 'flex';
+  loadAvailableTools();
+  document.getElementById('mcp-tool-form').style.display = 'none';
+  document.getElementById('add-mcp-btn').style.display = 'none';
+  document.getElementById('add-mcp-btn').dataset.wizardMode = 'true';
+}
+
+function removeWizardMcpTool(toolId) {
+  wizardState.mcpTools = wizardState.mcpTools.filter(t => t.id !== toolId);
+  renderWizardMcpTools();
 }
 
 // ===== Client Detail =====
@@ -663,6 +874,7 @@ async function addMcpTool() {
   const btn = document.getElementById('add-mcp-btn');
   const toolId = btn.dataset.toolId;
   const tool = availableTools.find(t => t.id === toolId);
+  const isWizard = btn.dataset.wizardMode === 'true';
   
   if (!tool) return;
   
@@ -685,17 +897,29 @@ async function addMcpTool() {
   }
   
   try {
-    await fetch(`/api/clients/${currentSlug}/mcp-tools/${toolId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config),
-    });
-    hideAddMcpModal();
-    showToast('MCP tool added!', 'success');
-    loadMcpTools(currentSlug);
+    if (isWizard) {
+      // Just store in wizard state
+      wizardState.mcpTools.push({ id: toolId, config });
+      hideAddMcpModal();
+      renderWizardMcpTools();
+      showToast('Tool added to wizard', 'success');
+    } else {
+      // Direct API call
+      await fetch(`/api/clients/${currentSlug}/mcp-tools/${toolId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      hideAddMcpModal();
+      showToast('MCP tool added!', 'success');
+      loadMcpTools(currentSlug);
+    }
   } catch (err) {
     showToast(err.message, 'error');
   }
+  
+  // Clear wizard mode
+  btn.dataset.wizardMode = 'false';
 }
 
 async function testMcpTool(toolId) {
