@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as yaml from 'js-yaml';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -14,87 +15,28 @@ function slugify(name) {
 }
 
 function readYaml(filePath) {
+  if (!fs.existsSync(filePath)) return {};
   try {
-    const content = fs.readFileSync(filePath, 'utf8');
-    // Simple YAML parse (avoid dependency for now)
-    const lines = content.split('\n');
-    const result = {};
-    let current = result;
-    const stack = [{ obj: result, indent: -1 }];
-    
-    for (const line of lines) {
-      if (line.trim() === '' || line.trim().startsWith('#')) continue;
-      const indent = line.search(/\S/);
-      const trimmed = line.trim();
-      
-      // Pop stack to find parent
-      while (stack.length > 1 && stack[stack.length - 1].indent >= indent) {
-        stack.pop();
-      }
-      
-      const parent = stack[stack.length - 1].obj;
-      
-      if (trimmed.includes(':')) {
-        const colonIdx = trimmed.indexOf(':');
-        const key = trimmed.slice(0, colonIdx).trim();
-        const value = trimmed.slice(colonIdx + 1).trim();
-        
-        if (value === '') {
-          // Nested object
-          parent[key] = {};
-          stack.push({ obj: parent[key], indent });
-        } else if (value.startsWith('[')) {
-          // Array
-          try {
-            parent[key] = JSON.parse(value);
-          } catch {
-            parent[key] = value;
-          }
-        } else {
-          // Scalar
-          parent[key] = value;
-        }
-      }
-    }
-    return result;
+    return yaml.load(fs.readFileSync(filePath, 'utf8')) || {};
   } catch {
     return {};
   }
 }
 
 function writeYaml(filePath, obj) {
-  // Simple YAML stringify
-  const lines = [];
-  function serialize(o, indent = 0) {
-    const prefix = '  '.repeat(indent);
-    for (const [key, value] of Object.entries(o)) {
-      if (value === null || value === undefined) {
-        lines.push(`${prefix}${key}:`);
-      } else if (typeof value === 'object' && !Array.isArray(value)) {
-        lines.push(`${prefix}${key}:`);
-        serialize(value, indent + 1);
-      } else if (Array.isArray(value)) {
-        if (value.length === 0) {
-          lines.push(`${prefix}${key}: []`);
-        } else {
-          lines.push(`${prefix}${key}:`);
-          for (const item of value) {
-            lines.push(`${prefix}  - ${item}`);
-          }
-        }
-      } else {
-        // String with special chars needs quoting
-        const str = String(value);
-        if (str.includes(':') || str.includes('#') || str.includes("'") || str.includes('"')) {
-          lines.push(`${prefix}${key}: "${str.replace(/"/g, '\\"')}"`);
-        } else {
-          lines.push(`${prefix}${key}: ${str}`);
-        }
-      }
-    }
+  fs.writeFileSync(filePath, yaml.dump(obj, { lineWidth: 120, noRefs: true }), 'utf8');
+}
+
+function readFile(filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch {
+    return '';
   }
-  serialize(obj);
-  fs.writeFileSync(filePath, lines.join('\n') + '\n', 'utf8');
+}
+
+function writeFile(filePath, content) {
+  fs.writeFileSync(filePath, content, 'utf8');
 }
 
 export function listClients() {

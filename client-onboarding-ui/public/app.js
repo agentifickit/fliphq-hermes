@@ -133,6 +133,9 @@ async function openClientDetail(slug) {
     // Load status
     await loadGatewayStatus(slug);
     
+    // Load channels
+    await loadChannels(slug);
+    
     // Show modal
     document.getElementById('detail-modal').style.display = 'flex';
   } catch (err) {
@@ -173,7 +176,9 @@ function switchTab(tab) {
   event.target.classList.add('active');
   document.getElementById(`tab-${tab}`).classList.add('active');
   
-  if (tab === 'logs' && currentSlug) {
+  if (tab === 'channels' && currentSlug) {
+    loadChannels(currentSlug);
+  } else if (tab === 'logs' && currentSlug) {
     refreshLogs();
   }
 }
@@ -304,6 +309,182 @@ function showInternalStatus() {
 
 function showWhatsAppStatus() {
   showToast('WhatsApp router status coming soon', 'info');
+}
+
+// ===== Channel Configuration =====
+
+async function loadChannels(slug) {
+  try {
+    const res = await fetch(`/api/clients/${slug}/channels`);
+    const data = await res.json();
+    const channels = data.channels;
+    
+    // Render WhatsApp groups
+    const waList = document.getElementById('whatsapp-groups-list');
+    if (channels.whatsapp.groups.length > 0) {
+      waList.innerHTML = channels.whatsapp.groups.map(g => `
+        <div class="channel-item">
+          <div>
+            <div>${escapeHtml(g.name)}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">${g.groupId}</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="testWhatsAppGroup('${g.groupId}')">Test</button>
+          <button class="btn btn-danger btn-sm" onclick="removeWhatsAppGroup('${g.groupId}')">Remove</button>
+        </div>
+      `).join('');
+    } else {
+      waList.innerHTML = '<p class="info-text">No WhatsApp groups configured</p>';
+    }
+    
+    // Render Slack channels
+    const slackList = document.getElementById('slack-channels-list');
+    if (channels.slack_connect.channels.length > 0) {
+      slackList.innerHTML = channels.slack_connect.channels.map(c => `
+        <div class="channel-item">
+          <div>
+            <div>${escapeHtml(c.name)}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">${c.channelId}</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="testSlackChannel('${c.channelId}')">Test</button>
+          <button class="btn btn-danger btn-sm" onclick="removeSlackChannel('${c.channelId}')">Remove</button>
+        </div>
+      `).join('');
+    } else {
+      slackList.innerHTML = '<p class="info-text">No Slack Connect channels configured</p>';
+    }
+  } catch (err) {
+    showToast('Failed to load channels', 'error');
+  }
+}
+
+// WhatsApp Group Modals
+function showAddWhatsAppGroup() {
+  document.getElementById('add-whatsapp-modal').style.display = 'flex';
+  document.getElementById('whatsapp-group-id').value = '';
+  document.getElementById('whatsapp-group-name').value = '';
+}
+
+function hideAddWhatsAppModal() {
+  document.getElementById('add-whatsapp-modal').style.display = 'none';
+}
+
+async function addWhatsAppGroup() {
+  if (!currentSlug) return;
+  const groupId = document.getElementById('whatsapp-group-id').value.trim();
+  const groupName = document.getElementById('whatsapp-group-name').value.trim();
+  
+  if (!groupId) {
+    showToast('Group ID is required', 'error');
+    return;
+  }
+  
+  try {
+    await fetch(`/api/clients/${currentSlug}/channels/whatsapp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, groupName }),
+    });
+    hideAddWhatsAppModal();
+    showToast('WhatsApp group added!', 'success');
+    loadChannels(currentSlug);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function removeWhatsAppGroup(groupId) {
+  if (!currentSlug) return;
+  if (!confirm('Remove this WhatsApp group?')) return;
+  
+  try {
+    await fetch(`/api/clients/${currentSlug}/channels/whatsapp/${groupId}`, {
+      method: 'DELETE',
+    });
+    showToast('WhatsApp group removed', 'success');
+    loadChannels(currentSlug);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function testWhatsAppGroup(groupId) {
+  if (!currentSlug) return;
+  showToast('Sending test message...', 'info');
+  try {
+    const res = await fetch(`/api/clients/${currentSlug}/channels/whatsapp/${groupId}/test`, {
+      method: 'POST',
+    });
+    const data = await res.json();
+    showToast(data.success ? 'Test message sent!' : 'Failed to send test message', data.success ? 'success' : 'error');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// Slack Channel Modals
+function showAddSlackChannel() {
+  document.getElementById('add-slack-modal').style.display = 'flex';
+  document.getElementById('slack-channel-id').value = '';
+  document.getElementById('slack-channel-name').value = '';
+  document.getElementById('slack-workspace').value = '';
+}
+
+function hideAddSlackModal() {
+  document.getElementById('add-slack-modal').style.display = 'none';
+}
+
+async function addSlackChannel() {
+  if (!currentSlug) return;
+  const channelId = document.getElementById('slack-channel-id').value.trim();
+  const channelName = document.getElementById('slack-channel-name').value.trim();
+  const workspace = document.getElementById('slack-workspace').value.trim();
+  
+  if (!channelId) {
+    showToast('Channel ID is required', 'error');
+    return;
+  }
+  
+  try {
+    await fetch(`/api/clients/${currentSlug}/channels/slack`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId, channelName, workspace }),
+    });
+    hideAddSlackModal();
+    showToast('Slack channel added!', 'success');
+    loadChannels(currentSlug);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function removeSlackChannel(channelId) {
+  if (!currentSlug) return;
+  if (!confirm('Remove this Slack channel?')) return;
+  
+  try {
+    await fetch(`/api/clients/${currentSlug}/channels/slack/${channelId}`, {
+      method: 'DELETE',
+    });
+    showToast('Slack channel removed', 'success');
+    loadChannels(currentSlug);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function testSlackChannel(channelId) {
+  if (!currentSlug) return;
+  showToast('Sending test message...', 'info');
+  try {
+    const res = await fetch(`/api/clients/${currentSlug}/channels/slack/${channelId}/test`, {
+      method: 'POST',
+    });
+    const data = await res.json();
+    showToast(data.success ? 'Test message sent!' : 'Failed to send test message', data.success ? 'success' : 'error');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 }
 
 // ===== Init =====

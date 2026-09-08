@@ -120,7 +120,25 @@
         </div>
         
         <div id="tab-channels" class="tab-content">
-          <p class="info-text">Channel configuration coming in Phase 2</p>
+          <div class="channels-section">
+            <div class="section-header">
+              <h3>📱 WhatsApp Groups</h3>
+              <button class="btn btn-primary" onclick="showAddWhatsAppGroup()">+ Add Group</button>
+            </div>
+            <div id="whatsapp-groups-list" class="channel-list">
+              <!-- WhatsApp groups rendered here -->
+            </div>
+          </div>
+          
+          <div class="channels-section">
+            <div class="section-header">
+              <h3>💬 Slack Connect</h3>
+              <button class="btn btn-primary" onclick="showAddSlackChannel()">+ Add Channel</button>
+            </div>
+            <div id="slack-channels-list" class="channel-list">
+              <!-- Slack channels rendered here -->
+            </div>
+          </div>
         </div>
         
         <div id="tab-logs" class="tab-content">
@@ -136,6 +154,61 @@
 
   <!-- Toast notifications -->
   <div id="toast-container"></div>
+
+  <!-- Add WhatsApp Group Modal -->
+  <div id="add-whatsapp-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="hideAddWhatsAppModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add WhatsApp Group</h2>
+        <button class="modal-close" onclick="hideAddWhatsAppModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="whatsapp-group-id">Group ID *</label>
+          <input type="text" id="whatsapp-group-id" placeholder="e.g., 1203630123456789">
+          <p class="form-hint">Find this in Evolution API or WhatsApp group info</p>
+        </div>
+        <div class="form-group">
+          <label for="whatsapp-group-name">Group Name</label>
+          <input type="text" id="whatsapp-group-name" placeholder="e.g., TeemGenie Team">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideAddWhatsAppModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addWhatsAppGroup()">Add Group</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Slack Channel Modal -->
+  <div id="add-slack-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="hideAddSlackModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add Slack Connect Channel</h2>
+        <button class="modal-close" onclick="hideAddSlackModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="slack-channel-id">Channel ID *</label>
+          <input type="text" id="slack-channel-id" placeholder="e.g., C0AQ4C19F25">
+        </div>
+        <div class="form-group">
+          <label for="slack-channel-name">Channel Name</label>
+          <input type="text" id="slack-channel-name" placeholder="e.g., #teemgenie-connect">
+        </div>
+        <div class="form-group">
+          <label for="slack-workspace">Workspace</label>
+          <input type="text" id="slack-workspace" placeholder="e.g., teemgenie.slack.com">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideAddSlackModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addSlackChannel()">Add Channel</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/app.js"></script>
 </body>

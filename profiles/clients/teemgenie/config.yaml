@@ -1,91 +1,61 @@
-# TeemGenie Client Profile
-# Isolated agent for TeemGenie Labs — handles WhatsApp conversations, creates tasks in Notion.
-
 model:
-  base_url: https://inference-api.nousresearch.com/v1
-  default: meituan/longcat-2.0:free
+  base_url: "https://inference-api.nousresearch.com/v1"
+  default: "meituan/longcat-2.0:free"
   provider: nous
-
 agent:
   max_turns: 100
   reasoning_effort: medium
   verbose: false
-
 terminal:
   backend: local
   cwd: .
   timeout: 180
-
 web:
   backend: firecrawl
   use_gateway: true
-
 compression:
   enabled: true
   threshold: 0.5
   target_ratio: 0.2
-
 display:
   compact: false
   streaming: true
   skin: default
   tool_progress: all
-
 memory:
   memory_enabled: true
   user_profile_enabled: false
   memory_char_limit: 2200
-
 skills:
   creation_nudge_interval: 15
   disabled:
-    - polymarket
-    - research-paper-writing
-    - yuanbao
-    - teams-meeting-pipeline
-    - petdex
-    - airtable
-    - openhue
-
-# WhatsApp channel prompts (client group)
-# Messages arrive via the WhatsApp router, this is the response behavior
 slack:
   channel_prompts: {}
-
-# TeemGenie-specific tools enabled
 platform_toolsets:
   whatsapp:
-    - hermes-whatsapp
-    - file
-    - memory
-    - skills
-    - web
-    - terminal
-    - todo
-
 code_execution:
   max_tool_calls: 30
   timeout: 180
-
 streaming:
   enabled: false
-
 _config_version: 33
 group_sessions_per_user: false
-
 session_reset:
   at_hour: 4
   idle_minutes: 1440
   mode: none
-
 plugins:
   enabled: []
   disabled: []
   entries: {}
-
-# MCP server — Flip Copilot connects here to assign tasks
 mcp_servers:
   flip-copilot:
-    url: http://localhost:9001/mcp
+    url: "http://localhost:9001/mcp"
     transport: http
-    enabled: false  # Enable when Flip Copilot is configured
+    enabled: "false  # Enable when Flip Copilot is configured"
+whatsapp:
+  enabled: true
+  groups:
+    1203630123456789:
+      name: TeemGenie Team
+      added_at: "2026-09-08T09:13:58.658Z"
