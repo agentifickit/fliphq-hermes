@@ -28,10 +28,20 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
-// Inject build version into all rendered HTML
+// Inject build version into HTML
 app.use((req, res, next) => {
   res.locals.buildVersion = BUILD_VERSION;
   next();
+});
+
+// Serve index.html with injected build version
+app.get('/', (req, res) => {
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8')
+    .replace(/__BUILD_VERSION__/g, BUILD_VERSION);
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.send(html);
 });
 
 // Static files — aggressive cache busting for assets, no-cache for HTML

@@ -194,26 +194,7 @@ function renderWizardChannels() {
   }
 }
 
-function renderWizardMcpTools() {
-  const list = document.getElementById('wizard-mcp-tools');
-  if (wizardState.mcpTools.length > 0) {
-    list.innerHTML = wizardState.mcpTools.map(t => `
-      <div class="mcp-tool-card">
-        <div class="mcp-tool-header">
-          <span class="mcp-tool-icon">${getToolIcon(t.id)}</span>
-          <div class="mcp-tool-info">
-            <div class="mcp-tool-name">${getToolName(t.id)}</div>
-          </div>
-        </div>
-        <div class="mcp-tool-actions">
-          <button class="btn btn-danger btn-sm" onclick="removeWizardMcpTool('${t.id}')">Remove</button>
-        </div>
-      </div>
-    `).join('');
-  } else {
-    list.innerHTML = '<p class="info-text">No MCP tools selected</p>';
-  }
-}
+// Old renderWizardMcpTools and wizardAddMcpTool replaced below
 
 function updateReview() {
   document.getElementById('review-name').textContent = wizardState.name || '—';
@@ -364,69 +345,87 @@ function removeWizardSlack(channelId) {
   renderWizardChannels();
 }
 
-function wizardAddMcpTool() {
-  // Inline tool selector instead of modal
-  const container = document.createElement('div');
-  container.id = 'inline-mcp-selector';
-  container.innerHTML = `
-    <div class="inline-mcp-picker">
-      <div class="tool-grid compact">
-        ${availableTools.map(tool => `
-          <div class="tool-card compact" onclick="confirmAddMcpTool('${tool.id}')" id="inline-tool-${tool.id}">
-            <span class="tool-icon">${tool.icon}</span>
-            <div class="tool-name">${tool.name}</div>
+// ===== Wizard MCP Tools =====
+
+function renderWizardMcpTools() {
+  const list = document.getElementById('wizard-mcp-tools');
+  if (!list) return;
+  
+  if (wizardState.mcpTools.length > 0) {
+    list.innerHTML = `
+      <div class="selected-tools-list">
+        ${wizardState.mcpTools.map(t => `
+          <div class="selected-tool-tag">
+            <span class="tool-icon-sm">${getToolIcon(t.id)}</span>
+            <span>${getToolName(t.id)}</span>
+            <button class="btn-remove" onclick="removeWizardMcpTool('${t.id}')">×</button>
           </div>
         `).join('')}
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="cancelAddMcpTool()">Cancel</button>
-    </div>
-  `;
-  document.getElementById('wizard-mcp-tools').prepend(container);
+      <button class="btn btn-secondary btn-sm" onclick="showWizardMcpPicker()">+ Add Tool</button>
+    `;
+  } else {
+    list.innerHTML = `
+      <div class="empty-mcp-state">
+        <p class="info-text">No MCP tools selected</p>
+        <p class="form-hint">MCP tools provide analytics, ads, and integrations</p>
+        <button class="btn btn-primary btn-sm" onclick="showWizardMcpPicker()">+ Add Tool</button>
+      </div>
+    `;
+  }
 }
 
-function confirmAddMcpTool(toolId) {
+function showWizardMcpPicker() {
+  const list = document.getElementById('wizard-mcp-tools');
+  if (!list) return;
+  
+  list.innerHTML = `
+    <div class="mcp-picker-inline">
+      <h4>Choose a tool</h4>
+      <div class="tool-grid compact">
+        ${availableTools.map(tool => {
+          const isAdded = wizardState.mcpTools.find(t => t.id === tool.id);
+          return `
+          <div class="tool-card compact ${isAdded ? 'added' : ''}" 
+               onclick="${isAdded ? '' : `showWizardMcpConfig('${tool.id}')`}">
+            <span class="tool-icon">${tool.icon}</span>
+            <div class="tool-name">${tool.name}</div>
+            ${isAdded ? '<div class="added-badge">✓</div>' : ''}
+          </div>
+        `}).join('')}
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="renderWizardMcpTools()">Cancel</button>
+    </div>
+  `;
+}
+
+function showWizardMcpConfig(toolId) {
   const tool = availableTools.find(t => t.id === toolId);
   if (!tool) return;
   
-  // Check if already added
-  if (wizardState.mcpTools.find(t => t.id === toolId)) {
-    showToast('Tool already added', 'error');
-    return;
-  }
+  const list = document.getElementById('wizard-mcp-tools');
+  if (!list) return;
   
-  // For tools without required fields, add directly
-  const hasRequiredFields = tool.fields.some(f => f.required);
-  if (!hasRequiredFields) {
-    wizardState.mcpTools.push({ id: toolId, config: {} });
-    document.getElementById('inline-mcp-selector').remove();
-    renderWizardMcpTools();
-    return;
-  }
-  
-  // Show inline config form for tools with required fields
-  const container = document.createElement('div');
-  container.id = 'inline-mcp-config';
-  container.innerHTML = `
-    <div class="inline-form">
+  list.innerHTML = `
+    <div class="mcp-config-inline">
       <h4>Configure ${tool.name}</h4>
       ${tool.fields.map(field => `
         <div class="form-group">
           <label>${field.label}${field.required ? ' *' : ''}</label>
           <input type="${field.type === 'textarea' ? 'text' : field.type}" 
-                 id="inline-mcp-${field.key}" 
+                 id="wizard-mcp-${field.key}" 
                  placeholder="${field.default || ''}">
         </div>
       `).join('')}
       <div class="form-row">
-        <button class="btn btn-primary btn-sm" onclick="confirmMcpToolConfig('${toolId}')">Add</button>
-        <button class="btn btn-secondary btn-sm" onclick="cancelMcpToolConfig()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="addWizardMcpTool('${toolId}')">Add</button>
+        <button class="btn btn-secondary btn-sm" onclick="showWizardMcpPicker()">Back</button>
       </div>
     </div>
   `;
-  document.getElementById('inline-mcp-selector').replaceWith(container);
 }
 
-function confirmMcpToolConfig(toolId) {
+function addWizardMcpTool(toolId) {
   const tool = availableTools.find(t => t.id === toolId);
   if (!tool) return;
   
@@ -434,7 +433,7 @@ function confirmMcpToolConfig(toolId) {
   let missing = false;
   
   for (const field of tool.fields) {
-    const input = document.getElementById(`inline-mcp-${field.key}`);
+    const input = document.getElementById(`wizard-mcp-${field.key}`);
     const value = input.value.trim();
     if (field.required && !value) {
       missing = true;
@@ -449,18 +448,7 @@ function confirmMcpToolConfig(toolId) {
   }
   
   wizardState.mcpTools.push({ id: toolId, config });
-  document.getElementById('inline-mcp-config').remove();
   renderWizardMcpTools();
-}
-
-function cancelMcpToolConfig() {
-  const el = document.getElementById('inline-mcp-config');
-  if (el) el.remove();
-}
-
-function cancelAddMcpTool() {
-  const el = document.getElementById('inline-mcp-selector');
-  if (el) el.remove();
 }
 
 function removeWizardMcpTool(toolId) {
