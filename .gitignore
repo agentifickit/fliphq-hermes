@@ -1,0 +1,43 @@
+# Secrets & credentials
+.env
+.env.*
+auth.json
+*.pem
+*.key
+
+# Runtime state
+state.db
+state.db-*
+*.lock
+*.pid
+gateway_state.json
+channel_directory.json
+context_length_cache.yaml
+.hermes_history
+.update_check
+.processes_*.tmp
+
+# Backups
+*.bak
+*.bak.*
+
+# Cache & logs
+cache/
+audio_cache/
+logs/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node.js
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

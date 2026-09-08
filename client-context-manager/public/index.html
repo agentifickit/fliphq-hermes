@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlipHQ · Client Context</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" class="brand-mark" aria-hidden="true"><path d="M12 3 L21 20 H3 Z" /></svg>
+        <div>
+          <div class="brand-name">FlipHQ</div>
+          <div class="brand-sub">Client Context</div>
+        </div>
+      </div>
+
+      <button id="new-client-btn" class="btn new-client">+ New client</button>
+
+      <div class="search-wrap">
+        <input id="search-input" class="search-input" type="text" placeholder="Search all clients…" autocomplete="off" />
+      </div>
+
+      <nav id="client-list" class="client-list"></nav>
+    </aside>
+
+    <main class="main">
+      <!-- Search results view -->
+      <section id="search-view" class="view hidden">
+        <div class="view-head">
+          <h2 id="search-title">Search</h2>
+          <button class="btn ghost" id="clear-search">✕ Clear</button>
+        </div>
+        <div id="search-results" class="search-results"></div>
+      </section>
+
+      <!-- Empty state -->
+      <section id="empty-view" class="view empty">
+        <div class="empty-mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 L21 20 H3 Z" /></svg>
+        </div>
+        <h1>No client selected</h1>
+        <p>Pick a client on the left, or create a new one.</p>
+      </section>
+
+      <!-- Client view -->
+      <section id="client-view" class="view hidden">
+        <header class="client-head">
+          <div>
+            <h1 id="client-title">Client</h1>
+            <div class="client-meta" id="client-meta"></div>
+          </div>
+          <div class="head-actions">
+            <button class="btn ghost" id="diff-btn" title="Review changes vs main">⇄ Compare with main</button>
+            <button class="btn primary" id="merge-btn" title="Merge current branch into main">Merge to main</button>
+            <button class="btn ghost" id="refresh-btn" title="Refresh">↻</button>
+          </div>
+        </header>
+
+        <div class="layout">
+          <div class="file-panel">
+            <div class="branch-bar">
+              <button class="branch-current" id="branch-current">
+                <span class="branch-icon">⎇</span>
+                <span id="branch-name">main</span>
+                <span class="chev">▾</span>
+              </button>
+              <button class="branch-new" id="new-branch-btn" title="New branch">+</button>
+            </div>
+            <div id="branch-menu" class="branch-menu hidden"></div>
+            <div class="panel-tabs">
+              <button class="ptab active" id="tab-files">Files</button>
+              <button class="ptab" id="tab-history">History</button>
+            </div>
+            <div class="file-tree" id="file-tree"></div>
+            <div class="history-panel hidden" id="history-panel"></div>
+          </div>
+          <div class="doc">
+            <div class="doc-toolbar">
+              <div class="doc-path" id="doc-path"></div>
+              <div class="doc-actions">
+                <button class="btn ghost" id="edit-btn">✎ Edit</button>
+                <button class="btn primary hidden" id="save-btn">Save</button>
+                <button class="btn ghost hidden" id="cancel-btn">Cancel</button>
+              </div>
+            </div>
+            <div id="doc-preview" class="doc-preview markdown-body"></div>
+            <textarea id="doc-editor" class="doc-editor hidden" spellcheck="false"></textarea>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- New client modal -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>New client</h3>
+      <label class="field">
+        <span>Client name</span>
+        <input id="nc-name" type="text" placeholder="e.g. Acme Corp" autocomplete="off" />
+      </label>
+      <label class="field">
+        <span>Pillar</span>
+        <select id="nc-pillar">
+          <option value="">— select —</option>
+          <option>Flip Funnel</option>
+          <option>PluralHire</option>
+          <option>GTMOps</option>
+          <option>Agentific</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button class="btn ghost" id="nc-cancel">Cancel</button>
+        <button class="btn primary" id="nc-create">Create</button>
+      </div>
+      <div id="nc-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- New branch modal -->
+  <div id="branch-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>New branch</h3>
+      <label class="field">
+        <span>Branch name</span>
+        <input id="nb-name" type="text" placeholder="e.g. ingest/2026-08-25" autocomplete="off" />
+      </label>
+      <div class="modal-actions">
+        <button class="btn ghost" id="nb-cancel">Cancel</button>
+        <button class="btn primary" id="nb-create">Create</button>
+      </div>
+      <div id="nb-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- Diff / merge modal -->
+  <div id="diff-modal" class="modal-overlay hidden">
+    <div class="modal diff-modal">
+      <div class="diff-head">
+        <h3>Compare <code id="diff-base">main</code> → <code id="diff-head">HEAD</code></h3>
+        <button class="btn ghost" id="diff-close">✕</button>
+      </div>
+      <div id="diff-stat" class="diff-stat"></div>
+      <div id="diff-body" class="diff-body"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="diff-close2">Close</button>
+        <button class="btn primary" id="diff-merge-btn">Merge into main</button>
+      </div>
+      <div id="diff-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/vendor/marked/marked.umd.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

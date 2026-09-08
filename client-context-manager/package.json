@@ -1,0 +1,16 @@
+{
+  "name": "fliphq-client-context",
+  "version": "1.0.0",
+  "description": "FlipHQ client context manager — self-hosted dashboard over ~/clients/",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sync:whatsapp": "node scripts/whatsapp-sync.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "js-yaml": "^5.4.0",
+    "marked": "^14.1.2"
+  }
+}
