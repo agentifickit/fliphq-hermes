@@ -1,0 +1,19 @@
+# FlipHQ WhatsApp Group Routing
+# Maps WhatsApp group IDs to client profiles.
+# When a message arrives from a group, the router hands it off to the matching client profile.
+#
+# To add a new client:
+# 1. Get the group ID (from Evolution API or WhatsApp group info)
+# 2. Add the mapping below: "<group_id>": "<client_profile_slug>"
+# 3. Ensure the client profile exists in profiles/clients/<slug>/
+# 4. Run: ./scripts/deploy.sh whatsapp-hub && ./scripts/deploy.sh clients/<slug>
+
+# Group IDs are bare numbers (no @g.us suffix).
+# Example: if the JID is 1203630123456789@g.us, the group_id is 1203630123456789
+
+group_routing:
+  # TeemGenie (TeemGenie Labs)
+  # "1203630123456789": "teemgenie"
+  
+  # Client B placeholder
+  # "1203630987654321": "client-b"
