@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as yaml from 'js-yaml';
+import { readYaml, writeYaml } from './yaml-utils.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -12,31 +12,6 @@ const TEMPLATE_DIR = path.join(PROFILES_DIR, 'template');
 
 function slugify(name) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-}
-
-function readYaml(filePath) {
-  if (!fs.existsSync(filePath)) return {};
-  try {
-    return yaml.load(fs.readFileSync(filePath, 'utf8')) || {};
-  } catch {
-    return {};
-  }
-}
-
-function writeYaml(filePath, obj) {
-  fs.writeFileSync(filePath, yaml.dump(obj, { lineWidth: 120, noRefs: true }), 'utf8');
-}
-
-function readFile(filePath) {
-  try {
-    return fs.readFileSync(filePath, 'utf8');
-  } catch {
-    return '';
-  }
-}
-
-function writeFile(filePath, content) {
-  fs.writeFileSync(filePath, content, 'utf8');
 }
 
 export function listClients() {
@@ -54,10 +29,18 @@ export function listClients() {
     const clientDir = path.join(PROFILES_DIR, slug);
     const configPath = path.join(clientDir, 'config.yaml');
     const soulPath = path.join(clientDir, 'SOUL.md');
+    const channelsPath = path.join(clientDir, 'channels.yaml');
     
     let config = {};
     if (fs.existsSync(configPath)) {
       config = readYaml(configPath);
+    }
+    
+    // Merge channels.yaml if it exists
+    if (fs.existsSync(channelsPath)) {
+      const channels = readYaml(channelsPath);
+      config.whatsapp = { ...config.whatsapp, ...channels.whatsapp };
+      config.slack_connect = { ...config.slack_connect, ...channels.slack_connect };
     }
     
     let soulContent = '';
@@ -91,8 +74,8 @@ export function listClients() {
 
 function extractChannels(config) {
   const channels = [];
-  if (config.whatsapp?.enabled) channels.push('whatsapp');
-  if (config.slack?.channel_prompts) channels.push('slack-connect');
+  if (config.whatsapp?.enabled || config.whatsapp?.groups) channels.push('whatsapp');
+  if (config.slack_connect?.enabled || config.slack_connect?.channels) channels.push('slack-connect');
   return channels;
 }
 

@@ -3,26 +3,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as yaml from 'js-yaml';
+import { readYaml, writeYaml } from './yaml-utils.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const PROFILES_DIR = path.join(REPO_ROOT, 'profiles', 'clients');
 const ROUTER_DIR = path.join(REPO_ROOT, 'profiles', 'whatsapp-hub');
 const ROUTING_FILE = path.join(ROUTER_DIR, 'group-routing.yaml');
-
-function readYaml(filePath) {
-  if (!fs.existsSync(filePath)) return {};
-  try {
-    return yaml.load(fs.readFileSync(filePath, 'utf8')) || {};
-  } catch {
-    return {};
-  }
-}
-
-function writeYaml(filePath, obj) {
-  fs.writeFileSync(filePath, yaml.dump(obj, { lineWidth: 120, noRefs: true }), 'utf8');
-}
 
 function getChannelsFile(slug) {
   return path.join(PROFILES_DIR, slug, 'channels.yaml');
