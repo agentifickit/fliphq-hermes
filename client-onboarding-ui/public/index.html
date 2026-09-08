@@ -78,6 +78,7 @@
           <button class="tab active" onclick="switchTab('overview')">Overview</button>
           <button class="tab" onclick="switchTab('config')">Config</button>
           <button class="tab" onclick="switchTab('channels')">Channels</button>
+          <button class="tab" onclick="switchTab('mcp')">MCP Tools</button>
           <button class="tab" onclick="switchTab('logs')">Logs</button>
         </div>
         
@@ -148,6 +149,45 @@
           </div>
           <div id="gateway-logs" class="log-viewer">Loading...</div>
         </div>
+
+        <div id="tab-mcp" class="tab-content">
+          <div class="mcp-header">
+            <h3>🔧 MCP Tools</h3>
+            <button class="btn btn-primary" onclick="showAddMcpTool()">+ Add Tool</button>
+          </div>
+          <div id="mcp-tools-list" class="mcp-tools-grid">
+            <!-- MCP tools rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add MCP Tool Modal -->
+  <div id="add-mcp-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="hideAddMcpModal()"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>Add MCP Tool</h2>
+        <button class="modal-close" onclick="hideAddMcpModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="tool-selector">
+          <h4>Select Tool</h4>
+          <div id="tool-selector-grid" class="tool-grid">
+            <!-- Tool templates rendered here -->
+          </div>
+        </div>
+        <div id="mcp-tool-form" style="display: none;">
+          <h4 id="mcp-form-title">Configure Tool</h4>
+          <div id="mcp-form-fields">
+            <!-- Dynamic form fields here -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideAddMcpModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addMcpTool()" id="add-mcp-btn" style="display: none;">Add Tool</button>
       </div>
     </div>
   </div>

@@ -136,6 +136,9 @@ async function openClientDetail(slug) {
     // Load channels
     await loadChannels(slug);
     
+    // Load MCP tools
+    await loadMcpTools(slug);
+    
     // Show modal
     document.getElementById('detail-modal').style.display = 'flex';
   } catch (err) {
@@ -178,6 +181,8 @@ function switchTab(tab) {
   
   if (tab === 'channels' && currentSlug) {
     loadChannels(currentSlug);
+  } else if (tab === 'mcp' && currentSlug) {
+    loadMcpTools(currentSlug);
   } else if (tab === 'logs' && currentSlug) {
     refreshLogs();
   }
@@ -490,3 +495,202 @@ async function testSlackChannel(channelId) {
 // ===== Init =====
 
 document.addEventListener('DOMContentLoaded', loadClients);
+
+// ===== MCP Tool Configuration =====
+
+let availableTools = [];
+
+async function loadMcpTools(slug) {
+  try {
+    const res = await fetch(`/api/clients/${slug}/mcp-tools`);
+    const data = await res.json();
+    const tools = data.tools || {};
+    
+    const list = document.getElementById('mcp-tools-list');
+    
+    if (Object.keys(tools).length > 0) {
+      list.innerHTML = Object.entries(tools).map(([id, tool]) => `
+        <div class="mcp-tool-card">
+          <div class="mcp-tool-header">
+            <span class="mcp-tool-icon">${getToolIcon(id)}</span>
+            <div class="mcp-tool-info">
+              <div class="mcp-tool-name">${getToolName(id)}</div>
+              <div class="mcp-tool-status ${tool.enabled ? 'enabled' : 'disabled'}">${tool.enabled ? '● Enabled' : '○ Disabled'}</div>
+            </div>
+          </div>
+          <div class="mcp-tool-actions">
+            <button class="btn btn-secondary btn-sm" onclick="testMcpTool('${id}')">Test</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleMcpTool('${id}')">${tool.enabled ? 'Disable' : 'Enable'}</button>
+            <button class="btn btn-danger btn-sm" onclick="removeMcpTool('${id}')">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      list.innerHTML = '<p class="info-text">No MCP tools configured</p>';
+    }
+  } catch (err) {
+    showToast('Failed to load MCP tools', 'error');
+  }
+}
+
+function getToolIcon(toolId) {
+  const icons = {
+    posthog: '📊',
+    google_analytics: '📈',
+    windsor: '🎥',
+    figma: '🎨',
+    meta_ads: '📘',
+    google_ads: '🔍',
+    slack: '💬',
+    notion: '📝',
+  };
+  return icons[toolId] || '🔧';
+}
+
+function getToolName(toolId) {
+  const names = {
+    posthog: 'PostHog',
+    google_analytics: 'Google Analytics',
+    windsor: 'Windsor.ai',
+    figma: 'Figma',
+    meta_ads: 'Meta Ads',
+    google_ads: 'Google Ads',
+    slack: 'Slack',
+    notion: 'Notion',
+  };
+  return names[toolId] || toolId;
+}
+
+function showAddMcpTool() {
+  document.getElementById('add-mcp-modal').style.display = 'flex';
+  loadAvailableTools();
+  document.getElementById('mcp-tool-form').style.display = 'none';
+  document.getElementById('add-mcp-btn').style.display = 'none';
+}
+
+function hideAddMcpModal() {
+  document.getElementById('add-mcp-modal').style.display = 'none';
+}
+
+async function loadAvailableTools() {
+  try {
+    const res = await fetch('/api/clients/mcp-tools/available');
+    const data = await res.json();
+    availableTools = data.tools;
+    
+    const grid = document.getElementById('tool-selector-grid');
+    grid.innerHTML = availableTools.map(tool => `
+      <div class="tool-card" onclick="selectTool('${tool.id}')">
+        <span class="tool-icon">${tool.icon}</span>
+        <div class="tool-name">${tool.name}</div>
+        <div class="tool-desc">${tool.description}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    showToast('Failed to load available tools', 'error');
+  }
+}
+
+function selectTool(toolId) {
+  const tool = availableTools.find(t => t.id === toolId);
+  if (!tool) return;
+  
+  document.getElementById('mcp-form-title').textContent = `Configure ${tool.name}`;
+  
+  const fields = document.getElementById('mcp-form-fields');
+  fields.innerHTML = tool.fields.map(field => `
+    <div class="form-group">
+      <label for="mcp-field-${field.key}">${field.label}${field.required ? ' *' : ''}</label>
+      <input type="${field.type === 'textarea' ? 'text' : field.type}" 
+             id="mcp-field-${field.key}" 
+             placeholder="${field.default || ''}"
+             ${field.required ? 'required' : ''}>
+      ${field.default ? `<p class="form-hint">Default: ${field.default}</p>` : ''}
+    </div>
+  `).join('');
+  
+  document.getElementById('mcp-tool-form').style.display = 'block';
+  document.getElementById('add-mcp-btn').style.display = 'inline-block';
+  document.getElementById('add-mcp-btn').dataset.toolId = toolId;
+}
+
+async function addMcpTool() {
+  if (!currentSlug) return;
+  const btn = document.getElementById('add-mcp-btn');
+  const toolId = btn.dataset.toolId;
+  const tool = availableTools.find(t => t.id === toolId);
+  
+  if (!tool) return;
+  
+  const config = {};
+  let missing = false;
+  
+  for (const field of tool.fields) {
+    const input = document.getElementById(`mcp-field-${field.key}`);
+    const value = input.value.trim();
+    if (field.required && !value) {
+      missing = true;
+      break;
+    }
+    if (value) config[field.key] = value;
+  }
+  
+  if (missing) {
+    showToast('All required fields must be filled', 'error');
+    return;
+  }
+  
+  try {
+    await fetch(`/api/clients/${currentSlug}/mcp-tools/${toolId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    hideAddMcpModal();
+    showToast('MCP tool added!', 'success');
+    loadMcpTools(currentSlug);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function testMcpTool(toolId) {
+  if (!currentSlug) return;
+  showToast('Testing connection...', 'info');
+  try {
+    const res = await fetch(`/api/clients/${currentSlug}/mcp-tools/${toolId}/test`, {
+      method: 'POST',
+    });
+    const data = await res.json();
+    showToast(data.message || 'Test complete', data.success ? 'success' : 'error');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function toggleMcpTool(toolId) {
+  if (!currentSlug) return;
+  try {
+    await fetch(`/api/clients/${currentSlug}/mcp-tools/${toolId}/toggle`, {
+      method: 'POST',
+    });
+    showToast('Tool toggled', 'success');
+    loadMcpTools(currentSlug);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function removeMcpTool(toolId) {
+  if (!currentSlug) return;
+  if (!confirm('Remove this MCP tool?')) return;
+  try {
+    await fetch(`/api/clients/${currentSlug}/mcp-tools/${toolId}`, {
+      method: 'DELETE',
+    });
+    showToast('MCP tool removed', 'success');
+    loadMcpTools(currentSlug);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
