@@ -287,12 +287,37 @@ async function wizardDeploy() {
 
 // Wizard channel/tool management
 function wizardAddWhatsAppGroup() {
-  const groupId = prompt('Enter WhatsApp group ID (bare number, e.g., 1203630123456789):');
-  if (!groupId) return;
-  const groupName = prompt('Enter group name:') || `Group ${groupId}`;
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <div class="inline-form" id="inline-wa-form">
+      <div class="form-row">
+        <input type="text" id="wizard-wa-group-id" placeholder="Group ID (e.g., 1203630123456789)" class="inline-input">
+        <input type="text" id="wizard-wa-group-name" placeholder="Group Name" class="inline-input">
+        <button class="btn btn-primary btn-sm" onclick="confirmAddWhatsApp()">Add</button>
+        <button class="btn btn-secondary btn-sm" onclick="cancelAddWhatsApp()">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('wizard-whatsapp-groups').prepend(container);
+  document.getElementById('wizard-wa-group-id').focus();
+}
+
+function confirmAddWhatsApp() {
+  const groupId = document.getElementById('wizard-wa-group-id').value.trim();
+  const groupName = document.getElementById('wizard-wa-group-name').value.trim() || `Group ${groupId}`;
+  
+  if (!groupId || !/^\d+$/.test(groupId.replace(/@g\.us$/, ''))) {
+    showToast('Invalid group ID format', 'error');
+    return;
+  }
   
   wizardState.whatsappGroups.push({ groupId: groupId.replace(/@g\.us$/, ''), name: groupName });
+  document.getElementById('inline-wa-form').remove();
   renderWizardChannels();
+}
+
+function cancelAddWhatsApp() {
+  document.getElementById('inline-wa-form').remove();
 }
 
 function removeWizardWhatsApp(groupId) {
@@ -301,12 +326,37 @@ function removeWizardWhatsApp(groupId) {
 }
 
 function wizardAddSlackChannel() {
-  const channelId = prompt('Enter Slack channel ID (e.g., C0AQ4C19F25):');
-  if (!channelId) return;
-  const channelName = prompt('Enter channel name:') || `Channel ${channelId}`;
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <div class="inline-form" id="inline-slack-form">
+      <div class="form-row">
+        <input type="text" id="wizard-slack-channel-id" placeholder="Channel ID (e.g., C0AQ4C19F25)" class="inline-input">
+        <input type="text" id="wizard-slack-channel-name" placeholder="Channel Name" class="inline-input">
+        <button class="btn btn-primary btn-sm" onclick="confirmAddSlack()">Add</button>
+        <button class="btn btn-secondary btn-sm" onclick="cancelAddSlack()">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('wizard-slack-channels').prepend(container);
+  document.getElementById('wizard-slack-channel-id').focus();
+}
+
+function confirmAddSlack() {
+  const channelId = document.getElementById('wizard-slack-channel-id').value.trim();
+  const channelName = document.getElementById('wizard-slack-channel-name').value.trim() || `Channel ${channelId}`;
+  
+  if (!channelId || !/^[A-Za-z0-9_]+$/.test(channelId)) {
+    showToast('Invalid channel ID format', 'error');
+    return;
+  }
   
   wizardState.slackChannels.push({ channelId, name: channelName });
+  document.getElementById('inline-slack-form').remove();
   renderWizardChannels();
+}
+
+function cancelAddSlack() {
+  document.getElementById('inline-slack-form').remove();
 }
 
 function removeWizardSlack(channelId) {
@@ -315,11 +365,102 @@ function removeWizardSlack(channelId) {
 }
 
 function wizardAddMcpTool() {
-  document.getElementById('add-mcp-modal').style.display = 'flex';
-  loadAvailableTools();
-  document.getElementById('mcp-tool-form').style.display = 'none';
-  document.getElementById('add-mcp-btn').style.display = 'none';
-  document.getElementById('add-mcp-btn').dataset.wizardMode = 'true';
+  // Inline tool selector instead of modal
+  const container = document.createElement('div');
+  container.id = 'inline-mcp-selector';
+  container.innerHTML = `
+    <div class="inline-mcp-picker">
+      <div class="tool-grid compact">
+        ${availableTools.map(tool => `
+          <div class="tool-card compact" onclick="confirmAddMcpTool('${tool.id}')" id="inline-tool-${tool.id}">
+            <span class="tool-icon">${tool.icon}</span>
+            <div class="tool-name">${tool.name}</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="cancelAddMcpTool()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('wizard-mcp-tools').prepend(container);
+}
+
+function confirmAddMcpTool(toolId) {
+  const tool = availableTools.find(t => t.id === toolId);
+  if (!tool) return;
+  
+  // Check if already added
+  if (wizardState.mcpTools.find(t => t.id === toolId)) {
+    showToast('Tool already added', 'error');
+    return;
+  }
+  
+  // For tools without required fields, add directly
+  const hasRequiredFields = tool.fields.some(f => f.required);
+  if (!hasRequiredFields) {
+    wizardState.mcpTools.push({ id: toolId, config: {} });
+    document.getElementById('inline-mcp-selector').remove();
+    renderWizardMcpTools();
+    return;
+  }
+  
+  // Show inline config form for tools with required fields
+  const container = document.createElement('div');
+  container.id = 'inline-mcp-config';
+  container.innerHTML = `
+    <div class="inline-form">
+      <h4>Configure ${tool.name}</h4>
+      ${tool.fields.map(field => `
+        <div class="form-group">
+          <label>${field.label}${field.required ? ' *' : ''}</label>
+          <input type="${field.type === 'textarea' ? 'text' : field.type}" 
+                 id="inline-mcp-${field.key}" 
+                 placeholder="${field.default || ''}">
+        </div>
+      `).join('')}
+      <div class="form-row">
+        <button class="btn btn-primary btn-sm" onclick="confirmMcpToolConfig('${toolId}')">Add</button>
+        <button class="btn btn-secondary btn-sm" onclick="cancelMcpToolConfig()">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('inline-mcp-selector').replaceWith(container);
+}
+
+function confirmMcpToolConfig(toolId) {
+  const tool = availableTools.find(t => t.id === toolId);
+  if (!tool) return;
+  
+  const config = {};
+  let missing = false;
+  
+  for (const field of tool.fields) {
+    const input = document.getElementById(`inline-mcp-${field.key}`);
+    const value = input.value.trim();
+    if (field.required && !value) {
+      missing = true;
+      break;
+    }
+    if (value) config[field.key] = value;
+  }
+  
+  if (missing) {
+    showToast('All required fields must be filled', 'error');
+    return;
+  }
+  
+  wizardState.mcpTools.push({ id: toolId, config });
+  document.getElementById('inline-mcp-config').remove();
+  renderWizardMcpTools();
+}
+
+function cancelMcpToolConfig() {
+  const el = document.getElementById('inline-mcp-config');
+  if (el) el.remove();
+}
+
+function cancelAddMcpTool() {
+  const el = document.getElementById('inline-mcp-selector');
+  if (el) el.remove();
 }
 
 function removeWizardMcpTool(toolId) {
@@ -334,30 +475,49 @@ async function openClientDetail(slug) {
   
   try {
     const res = await fetch(`/api/clients/${slug}`);
+    if (!res.ok) throw new Error('Failed to fetch client');
+    
     const data = await res.json();
     const client = data.client;
     
-    document.getElementById('detail-title').textContent = client.slug;
-    document.getElementById('overview-client-name').textContent = client.slug;
-    document.getElementById('overview-profile-path').textContent = client.path;
-    document.getElementById('detail-config-yaml').value = JSON.stringify(client.config, null, 2);
-    document.getElementById('detail-soul-md').value = client.soulContent;
+    // Safely set DOM elements (some may not exist in all views)
+    const setTitle = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    const setValue = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    };
+    
+    setTitle('detail-title', client.slug);
+    setTitle('overview-client-name', client.slug);
+    setTitle('overview-profile-path', client.path);
+    setValue('detail-config-yaml', JSON.stringify(client.config, null, 2));
+    setValue('detail-soul-md', client.soulContent);
     
     // Load status
     await loadGatewayStatus(slug);
     
-    // Load channels
-    await loadChannels(slug);
+    // Load channels (if on channels tab)
+    if (document.getElementById('detail-channels')) {
+      await loadChannels(slug);
+    }
     
-    // Load MCP tools
-    await loadMcpTools(slug);
+    // Load MCP tools (if on MCP tab)
+    if (document.getElementById('mcp-tools-list')) {
+      await loadMcpTools(slug);
+    }
     
     // Update stats
-    updateOverviewStats(slug);
+    if (typeof updateOverviewStats === 'function') {
+      await updateOverviewStats(slug);
+    }
     
     // Show modal
     document.getElementById('detail-modal').style.display = 'flex';
   } catch (err) {
+    console.error('Failed to load client details:', err);
     showToast('Failed to load client details', 'error');
   }
 }
@@ -393,14 +553,22 @@ async function loadGatewayStatus(slug) {
     const data = await res.json();
     const status = data.status;
     
-    const badge = document.getElementById('detail-gateway-status');
-    badge.textContent = status.status;
-    badge.className = `status-badge ${status.status}`;
+    // Update overview badge
+    const overviewBadge = document.getElementById('overview-gateway-status');
+    if (overviewBadge) {
+      overviewBadge.textContent = `● ${status.status}`;
+      overviewBadge.className = `status-badge ${status.status}`;
+    }
     
-    document.getElementById('detail-gateway-pid').textContent = status.pid || '—';
-    document.getElementById('detail-gateway-uptime').textContent = status.uptime || '—';
+    // Update detail badge (if exists)
+    const detailBadge = document.getElementById('detail-gateway-status');
+    if (detailBadge) {
+      detailBadge.textContent = status.status;
+      detailBadge.className = `status-badge ${status.status}`;
+    }
   } catch {
-    document.getElementById('detail-gateway-status').textContent = 'unknown';
+    const badge = document.getElementById('overview-gateway-status') || document.getElementById('detail-gateway-status');
+    if (badge) badge.textContent = '● unknown';
   }
 }
 
@@ -737,12 +905,16 @@ document.addEventListener('DOMContentLoaded', loadClients);
 let availableTools = [];
 
 async function loadMcpTools(slug) {
+  const targetSlug = slug || currentSlug;
+  if (!targetSlug) return;
+  
   try {
-    const res = await fetch(`/api/clients/${slug}/mcp-tools`);
+    const res = await fetch(`/api/clients/${targetSlug}/mcp-tools`);
     const data = await res.json();
     const tools = data.tools || {};
     
     const list = document.getElementById('mcp-tools-list');
+    if (!list) return; // Not on overview tab
     
     if (Object.keys(tools).length > 0) {
       list.innerHTML = Object.entries(tools).map(([id, tool]) => `
