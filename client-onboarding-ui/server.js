@@ -6,6 +6,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import { createProxyMiddleware } from './proxy-wa-manager.js';
 import clientsRouter from './routes/clients.js';
 import channelsRouter from './routes/channels.js';
 import mcpRouter from './routes/mcp.js';
@@ -37,13 +38,39 @@ app.use((req, res, next) => {
 });
 
 // Serve index.html with injected build version
-app.get('/', (req, res) => {
+app.get('/', (req, res, next) => {
+  const accept = req.headers.accept || '';
+  const isApiRequest = req.headers['apikey'] || 
+    accept.includes('application/json') || 
+    accept.includes('*/*') ||
+    !accept.includes('text/html');
+  
+  // Proxy to Evolution API for any non-HTML request (Manager UI test, API calls)
+  if (isApiRequest) {
+    createProxyMiddleware()(req, res);
+    return;
+  }
+  
   const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8')
     .replace(/__BUILD_VERSION__/g, BUILD_VERSION);
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.send(html);
+});
+
+// Evolution Manager UI — proxy everything to http://localhost:8080
+// MUST be before express.static to avoid being intercepted
+app.use('/manager', createProxyMiddleware(''));
+
+// Catch-all: proxy any request with apikey to Evolution API root
+// (handles Manager UI API calls like /instance/fetchInstances)
+app.use((req, res, next) => {
+  if (req.headers['apikey']) {
+    createProxyMiddleware()(req, res);
+    return;
+  }
+  next();
 });
 
 // Static files — aggressive cache busting for assets, no-cache for HTML
@@ -68,7 +95,7 @@ app.use('/api/clients', channelsRouter);
 app.use('/api/clients', mcpRouter);
 
 // Evolution API webhook receiver (WhatsApp messages)
-app.use('/', webhookRouter);
+app.use('/webhook', webhookRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

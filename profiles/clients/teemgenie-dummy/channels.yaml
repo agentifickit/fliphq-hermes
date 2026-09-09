@@ -1,0 +1,13 @@
+whatsapp:
+  enabled: true
+  groups:
+    '120363411948937222':
+      name: TG Dummy
+      added_at: '2026-09-09T20:27:08.137Z'
+slack_connect:
+  enabled: true
+  channels:
+    C0AQ4C19F25:
+      name: teemgenie-internal
+      workspace: null
+      added_at: '2026-09-09T20:27:08.478Z'

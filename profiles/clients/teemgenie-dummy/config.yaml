@@ -1,0 +1,120 @@
+model:
+  base_url: https://inference-api.nousresearch.com/v1
+  default: meituan/longcat-2.0:free
+  provider: nous
+agent:
+  max_turns: 150
+  reasoning_effort: medium
+  verbose: false
+terminal:
+  backend: local
+  cwd: .
+  timeout: 180
+web:
+  backend: firecrawl
+  use_gateway: true
+browser:
+  inactivity_timeout: 120
+  cloud_provider: browser-use
+  use_gateway: true
+compression:
+  enabled: true
+  threshold: 0.5
+  target_ratio: 0.2
+  protect_last_n: 20
+  protect_first_n: 3
+prompt_caching:
+  cache_ttl: 5m
+display:
+  compact: false
+  busy_input_mode: interrupt
+  bell_on_complete: false
+  show_reasoning: false
+  streaming: true
+  skin: default
+  interim_assistant_messages: true
+  background_process_notifications: all
+  busy_ack_detail: true
+  cleanup_progress: false
+  long_running_notifications: true
+  tool_progress: all
+tts:
+  provider: openai
+  use_gateway: true
+stt:
+  enabled: true
+  provider: openai
+  local:
+    model: base
+  openai:
+    model: whisper-1
+  use_gateway: true
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200
+  user_char_limit: 1375
+  flush_min_turns: 6
+  nudge_interval: 10
+delegation:
+  max_iterations: 50
+skills:
+  creation_nudge_interval: 15
+  disabled:
+    - polymarket
+    - research-paper-writing
+    - yuanbao
+    - teams-meeting-pipeline
+    - petdex
+    - airtable
+    - openhue
+slack:
+  channel_prompts:
+    CLIENT_CHANNEL_ID: >
+      You are working on the [CLIENT_NAME] client account. Client: [CLIENT_NAME] · Pillar: [PILLAR] GTM Principal:
+      [PRINCIPAL] · Account lead: [ACCOUNT_LEAD] Guardrails: internal only — human ships externally. Never share
+      contracts, pricing specifics, PII, retainers, billing.
+code_execution:
+  max_tool_calls: 50
+  timeout: 300
+streaming:
+  enabled: false
+_config_version: 33
+group_sessions_per_user: true
+image_gen:
+  use_gateway: true
+platform_toolsets:
+  slack:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - context_engine
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - slack_api
+session_reset:
+  at_hour: 4
+  idle_minutes: 1440
+  mode: none
+video_gen:
+  provider: fal
+  use_gateway: true
+plugins:
+  enabled: []
+  disabled: []
+  entries: {}
+mcp_servers: {}
+client_name: TeemGenie Dummy
