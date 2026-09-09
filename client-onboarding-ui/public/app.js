@@ -585,17 +585,23 @@ const App = {
   },
 
   wizardAddWhatsAppGroup() {
-    const groupId = prompt('Enter WhatsApp group ID (bare number, e.g., 1203630123456789):');
-    if (!groupId) return;
-    const groupName = prompt('Enter group name:') || `Group ${groupId}`;
-    
-    if (!/^\d+$/.test(groupId.replace(/@g\.us$/, ''))) {
-      this.showToast('Invalid group ID format', 'error');
-      return;
-    }
-    
-    this.wizardState.whatsappGroups.push({ groupId: groupId.replace(/@g\.us$/, ''), name: groupName });
-    this.renderWizardChannels();
+    this.showChannelInlineForm('wizard-whatsapp-groups', {
+      title: 'Add WhatsApp Group',
+      fields: [
+        { id: 'wa-group-id', label: 'Group ID', placeholder: '1203630123456789', hint: 'Bare number without @g.us', required: true },
+        { id: 'wa-group-name', label: 'Group Name', placeholder: 'Optional display name', required: false },
+      ],
+      onSubmit: (v) => {
+        const groupId = v['wa-group-id'].trim();
+        const groupName = v['wa-group-name'].trim() || `Group ${groupId}`;
+        if (!/^\d+$/.test(groupId.replace(/@g\.us$/, ''))) {
+          this.showToast('Invalid group ID format', 'error');
+          return;
+        }
+        this.wizardState.whatsappGroups.push({ groupId: groupId.replace(/@g\.us$/, ''), name: groupName });
+        this.renderWizardChannels();
+      },
+    });
   },
 
   removeWizardWhatsApp(groupId) {
@@ -604,22 +610,79 @@ const App = {
   },
 
   wizardAddSlackChannel() {
-    const channelId = prompt('Enter Slack channel ID (e.g., C0AQ4C19F25):');
-    if (!channelId) return;
-    const channelName = prompt('Enter channel name:') || `Channel ${channelId}`;
-    
-    if (!/^[A-Za-z0-9_]+$/.test(channelId)) {
-      this.showToast('Invalid channel ID format', 'error');
-      return;
-    }
-    
-    this.wizardState.slackChannels.push({ channelId, name: channelName });
-    this.renderWizardChannels();
+    this.showChannelInlineForm('wizard-slack-channels', {
+      title: 'Add Slack Channel',
+      fields: [
+        { id: 'sl-channel-id', label: 'Channel ID', placeholder: 'C0AQ4C19F25', hint: 'Starts with C', required: true },
+        { id: 'sl-channel-name', label: 'Channel Name', placeholder: 'Optional display name', required: false },
+      ],
+      onSubmit: (v) => {
+        const channelId = v['sl-channel-id'].trim();
+        const channelName = v['sl-channel-name'].trim() || `Channel ${channelId}`;
+        if (!/^[A-Za-z0-9_]+$/.test(channelId)) {
+          this.showToast('Invalid channel ID format', 'error');
+          return;
+        }
+        this.wizardState.slackChannels.push({ channelId, name: channelName });
+        this.renderWizardChannels();
+      },
+    });
   },
 
   removeWizardSlack(channelId) {
     this.wizardState.slackChannels = this.wizardState.slackChannels.filter(c => c.channelId !== channelId);
     this.renderWizardChannels();
+  },
+
+  showChannelInlineForm(containerId, { title, fields, onSubmit }) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const formId = `inline-form-${containerId}`;
+    const html = `
+      <div class="inline-channel-form" id="${formId}">
+        <h4>${this.escapeHtml(title)}</h4>
+        ${fields.map(f => `
+          <div class="form-group">
+            <label>${this.escapeHtml(f.label)}${f.required ? ' <span class="required-star">*</span>' : ''}</label>
+            <input type="text" id="${formId}-${f.id}" placeholder="${this.escapeHtml(f.placeholder)}" value="">
+            ${f.hint ? `<div class="form-hint">${this.escapeHtml(f.hint)}</div>` : ''}
+          </div>
+        `).join('')}
+        <div class="form-row">
+          <button class="btn btn-primary btn-sm" id="${formId}-submit">Add</button>
+          <button class="btn btn-secondary btn-sm" id="${formId}-cancel">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+
+    const form = document.getElementById(formId);
+    const firstInput = form.querySelector('input');
+    if (firstInput) firstInput.focus();
+
+    document.getElementById(`${formId}-cancel`).onclick = () => this.renderWizardChannels();
+    document.getElementById(`${formId}-submit`).onclick = () => {
+      const values = {};
+      for (const f of fields) {
+        const input = document.getElementById(`${formId}-${f.id}`);
+        values[f.id] = input.value;
+        if (f.required && !input.value.trim()) {
+          this.showToast(`${f.label} is required`, 'error');
+          return;
+        }
+      }
+      onSubmit(values);
+    };
+
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById(`${formId}-submit`).click();
+        if (e.key === 'Escape') this.renderWizardChannels();
+      });
+    });
   },
 
   // ===== Wizard MCP Tools =====
