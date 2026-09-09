@@ -94,6 +94,8 @@ const App = {
       }));
       
       list.innerHTML = clientsWithStatus.map(c => this.renderClientCard(c)).join('');
+      // Clear saved loading content so setLoading(false) doesn't wipe rendered cards
+      delete list.dataset.originalContent;
     } catch (err) {
       this.handleError(err, 'Failed to load clients');
     } finally {

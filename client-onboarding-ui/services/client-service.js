@@ -56,11 +56,15 @@ export function listClients() {
       soulContent = fs.readFileSync(soulPath, 'utf8');
     }
     
-    // Extract client name from SOUL.md or config
+    // Extract client name: prefer stored config name, then SOUL.md title, then slug
     let name = slug;
-    const nameMatch = soulContent.match(/\*\*(.+?)\*\*.*client/i);
-    if (nameMatch) {
-      name = nameMatch[1];
+    if (config.client_name) {
+      name = config.client_name;
+    } else {
+      const titleMatch = soulContent.match(/^#\s+(?:SOUL\.md\s*—\s*)?(.+)$/m);
+      if (titleMatch) {
+        name = titleMatch[1].trim();
+      }
     }
     
     clients.push({
@@ -144,6 +148,14 @@ export function createClient({ name, description = '' }) {
   let soulContent = fs.readFileSync(soulPath, 'utf8');
   soulContent = soulContent.replace(/\[CLIENT_NAME\]/g, name);
   fs.writeFileSync(soulPath, soulContent, 'utf8');
+  
+  // Store name in config.yaml so it survives re-reads
+  const configPath = path.join(clientDir, 'config.yaml');
+  if (fs.existsSync(configPath)) {
+    const config = readYaml(configPath);
+    config.client_name = name;
+    writeYaml(configPath, config);
+  }
   
   return { slug, name, path: clientDir };
 }
