@@ -1,0 +1,94 @@
+# FlipHQ WhatsApp Router Profile
+# Receives ALL WhatsApp messages via Evolution API, routes to client profiles.
+# This profile does NOT respond to clients — it only routes and acknowledges.
+
+model:
+  base_url: https://inference-api.nousresearch.com/v1
+  default: meituan/longcat-2.0:free
+  provider: nous
+
+agent:
+  max_turns: 50
+  reasoning_effort: low
+  verbose: false
+
+terminal:
+  backend: local
+  cwd: .
+  timeout: 180
+
+web:
+  backend: firecrawl
+  use_gateway: true
+
+compression:
+  enabled: true
+  threshold: 0.5
+  target_ratio: 0.2
+
+display:
+  compact: false
+  streaming: true
+  skin: default
+  tool_progress: none
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: false
+  memory_char_limit: 1000
+
+skills:
+  creation_nudge_interval: 30
+  disabled:
+    - polymarket
+    - research-paper-writing
+    - yuanbao
+    - teams-meeting-pipeline
+    - petdex
+    - airtable
+    - openhue
+
+# WhatsApp gateway config
+whatsapp:
+  enabled: true
+  # Evolution API webhook receiver
+  webhook:
+    enabled: true
+    port: 4132
+    path: /webhook/whatsapp
+  # Group ID → client profile mapping
+  # This is the routing table — edit this to add/remove client groups
+  group_routing:
+    # Format: group_id (bare, no @g.us): client_profile_slug
+    # Example: "1203630123456789": "teemgenie"
+    # Add new client groups here as they come online
+
+code_execution:
+  max_tool_calls: 20
+  timeout: 120
+
+streaming:
+  enabled: false
+
+_config_version: 33
+group_sessions_per_user: false
+
+platform_toolsets:
+  whatsapp:
+    - hermes-whatsapp
+    - file
+    - memory
+    - skills
+    - web
+
+session_reset:
+  at_hour: 4
+  idle_minutes: 1440
+  mode: none
+
+plugins:
+  enabled: []
+  disabled: []
+  entries: {}
+
+mcp_servers: {}

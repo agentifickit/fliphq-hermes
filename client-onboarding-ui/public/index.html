@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlipHQ — Client Onboarding</title>
+  <link rel="stylesheet" href="/style.css?v=__BUILD_VERSION__">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">FlipHQ</span>
+      </div>
+      <nav>
+        <a href="/" class="active">Clients</a>
+        <a href="#" onclick="showInternalStatus(); return false;">Internal</a>
+        <a href="#" onclick="showWhatsAppStatus(); return false;">WhatsApp Router</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="App.showCreateModal()">+ New Client</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1>Client Agents</h1>
+      <p class="subtitle">Manage client onboarding, channels, and gateway status</p>
+    </div>
+
+    <div id="client-list" class="client-grid">
+      <!-- Client cards rendered here -->
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <p>No clients yet. Create your first client agent to get started.</p>
+    </div>
+  </main>
+
+  <!-- Onboarding Wizard Modal -->
+  <div id="wizard-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="App.hideWizardModal()"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>Create New Client</h2>
+        <button class="modal-close" onclick="App.hideWizardModal()">×</button>
+      </div>
+      
+      <!-- Wizard Progress -->
+      <div class="wizard-progress">
+        <div class="wizard-step active" id="wizard-step-1">
+          <div class="wizard-step-number">1</div>
+          <div class="wizard-step-label">Basic Info</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" id="wizard-step-2">
+          <div class="wizard-step-number">2</div>
+          <div class="wizard-step-label">Channels</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" id="wizard-step-3">
+          <div class="wizard-step-number">3</div>
+          <div class="wizard-step-label">MCP Tools</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" id="wizard-step-4">
+          <div class="wizard-step-number">4</div>
+          <div class="wizard-step-label">Review</div>
+        </div>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Step 1: Basic Info -->
+        <div id="wizard-content-1" class="wizard-content active">
+          <div class="form-group">
+            <label for="wizard-client-name">Client Name *</label>
+            <input type="text" id="wizard-client-name" placeholder="e.g., TeemGenie Labs" required>
+          </div>
+          <div class="form-group">
+            <label for="wizard-client-description">Description</label>
+            <textarea id="wizard-client-description" placeholder="Brief description of the client..." rows="3"></textarea>
+          </div>
+        </div>
+        
+        <!-- Step 2: Channels -->
+        <div id="wizard-content-2" class="wizard-content" style="display: none;">
+          <div class="channels-section">
+            <div class="section-header">
+              <h3>📱 WhatsApp Groups</h3>
+              <button class="btn btn-primary btn-sm" onclick="App.wizardAddWhatsAppGroup()">+ Add Group</button>
+            </div>
+            <div id="wizard-whatsapp-groups" class="channel-list">
+              <p class="info-text">No WhatsApp groups added</p>
+            </div>
+          </div>
+          <div class="channels-section">
+            <div class="section-header">
+              <h3>💬 Slack Connect</h3>
+              <button class="btn btn-primary btn-sm" onclick="App.wizardAddSlackChannel()">+ Add Channel</button>
+            </div>
+            <div id="wizard-slack-channels" class="channel-list">
+              <p class="info-text">No Slack channels added</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Step 3: MCP Tools -->
+        <div id="wizard-content-3" class="wizard-content" style="display: none;">
+          <div class="mcp-header">
+            <h3>🔧 Select MCP Tools</h3>
+            <button class="btn btn-primary btn-sm" onclick="App.wizardAddMcpTool()">+ Add Tool</button>
+          </div>
+          <div id="wizard-mcp-tools" class="mcp-tools-grid">
+            <p class="info-text">No MCP tools selected</p>
+          </div>
+        </div>
+        
+        <!-- Step 4: Review -->
+        <div id="wizard-content-4" class="wizard-content" style="display: none;">
+          <div class="review-section">
+            <h4>Basic Info</h4>
+            <div class="review-item">
+              <span class="review-label">Name</span>
+              <span id="review-name" class="review-value">—</span>
+            </div>
+            <div class="review-item">
+              <span class="review-label">Description</span>
+              <span id="review-desc" class="review-value">—</span>
+            </div>
+          </div>
+          <div class="review-section">
+            <h4>Channels</h4>
+            <div class="review-item">
+              <span class="review-label">WhatsApp Groups</span>
+              <span id="review-whatsapp" class="review-value">0</span>
+            </div>
+            <div class="review-item">
+              <span class="review-label">Slack Channels</span>
+              <span id="review-slack" class="review-value">0</span>
+            </div>
+          </div>
+          <div class="review-section">
+            <h4>MCP Tools</h4>
+            <div id="review-mcp-tools" class="review-list">
+              <span class="info-text">None selected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.hideWizardModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="App.wizardBack()" id="wizard-back-btn" style="display: none;">Back</button>
+        <button class="btn btn-primary" onclick="App.wizardNext()" id="wizard-next-btn">Next</button>
+        <button class="btn btn-success" onclick="App.wizardDeploy()" id="wizard-deploy-btn" style="display: none;">Deploy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Detail Modal -->
+  <div id="detail-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="App.hideDetailModal()"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="detail-title">Client Details</h2>
+        <button class="modal-close" onclick="App.hideDetailModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs">
+          <button class="tab active" onclick="App.switchTab('overview')">Overview</button>
+          <button class="tab" onclick="App.switchTab('config')">Config</button>
+          <button class="tab" onclick="App.switchTab('channels')">Channels</button>
+          <button class="tab" onclick="App.switchTab('mcp')">MCP Tools</button>
+          <button class="tab" onclick="App.switchTab('logs')">Logs</button>
+        </div>
+        
+        <div id="tab-overview" class="tab-content active">
+          <div class="overview-header">
+            <div class="overview-title">
+              <h3 id="overview-client-name">Client Name</h3>
+              <p id="overview-client-desc" class="overview-description">Description</p>
+            </div>
+            <div class="overview-status">
+              <span id="overview-gateway-status" class="status-badge">● unknown</span>
+            </div>
+          </div>
+          
+          <div class="overview-stats">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-channels">0</div>
+              <div class="stat-label">Channels</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-mcp-tools">0</div>
+              <div class="stat-label">MCP Tools</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-tasks">0</div>
+              <div class="stat-label">Active Tasks</div>
+            </div>
+          </div>
+          
+          <div class="overview-actions">
+            <div class="action-group">
+              <span class="action-label">Gateway</span>
+              <div class="action-buttons">
+                <button class="btn btn-success" onclick="App.startGateway()">Start</button>
+                <button class="btn btn-danger" onclick="App.stopGateway()">Stop</button>
+                <button class="btn btn-warning" onclick="App.restartGateway()">Restart</button>
+              </div>
+            </div>
+            <div class="action-group">
+              <span class="action-label">Code</span>
+              <div class="action-buttons">
+                <button class="btn btn-primary" onclick="App.deployClient()">Deploy</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="overview-info">
+            <div class="info-row">
+              <span class="info-label">Profile Path</span>
+              <span id="overview-profile-path" class="info-value">—</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Created</span>
+              <span id="overview-created" class="info-value">—</span>
+            </div>
+          </div>
+        </div>
+        
+        <div id="tab-config" class="tab-content">
+          <div class="form-group">
+            <label>config.yaml</label>
+            <textarea id="detail-config-yaml" class="code-editor" rows="20"></textarea>
+          </div>
+          <div class="form-group">
+            <label>SOUL.md</label>
+            <textarea id="detail-soul-md" class="code-editor" rows="10"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="App.saveConfig()">Save Changes</button>
+        </div>
+        
+        <div id="tab-channels" class="tab-content">
+          <div class="channels-section">
+            <div class="section-header">
+              <h3>📱 WhatsApp Groups</h3>
+              <button class="btn btn-primary" onclick="App.showAddWhatsAppGroup()">+ Add Group</button>
+            </div>
+            <div id="whatsapp-groups-list" class="channel-list">
+              <!-- WhatsApp groups rendered here -->
+            </div>
+          </div>
+          
+          <div class="channels-section">
+            <div class="section-header">
+              <h3>💬 Slack Connect</h3>
+              <button class="btn btn-primary" onclick="App.showAddSlackChannel()">+ Add Channel</button>
+            </div>
+            <div id="slack-channels-list" class="channel-list">
+              <!-- Slack channels rendered here -->
+            </div>
+          </div>
+        </div>
+        
+        <div id="tab-logs" class="tab-content">
+          <div class="log-controls">
+            <button class="btn btn-secondary" onclick="App.refreshLogs()">Refresh</button>
+            <label>Lines: <input type="number" id="log-lines" value="100" min="10" max="1000"></label>
+          </div>
+          <div id="gateway-logs" class="log-viewer">Loading...</div>
+        </div>
+
+        <div id="tab-mcp" class="tab-content">
+          <div class="mcp-header">
+            <h3>🔧 MCP Tools</h3>
+            <button class="btn btn-primary" onclick="App.showAddMcpTool()">+ Add Tool</button>
+          </div>
+          <div id="mcp-tools-list" class="mcp-tools-grid">
+            <!-- MCP tools rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add MCP Tool Modal -->
+  <div id="add-mcp-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="App.hideAddMcpModal()"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>Add MCP Tool</h2>
+        <button class="modal-close" onclick="App.hideAddMcpModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="mcp-wizard">
+          <!-- Step 1: Tool Selection -->
+          <div id="mcp-step-select" class="mcp-step active">
+            <div class="mcp-step-header">
+              <span class="mcp-step-number">1</span>
+              <span class="mcp-step-title">Choose a tool to connect</span>
+            </div>
+            <div id="tool-selector-grid" class="tool-grid">
+              <!-- Tool templates rendered here -->
+            </div>
+          </div>
+          
+          <!-- Step 2: Configuration -->
+          <div id="mcp-step-config" class="mcp-step" style="display: none;">
+            <div class="mcp-step-header">
+              <span class="mcp-step-number">2</span>
+              <span class="mcp-step-title" id="mcp-form-title">Configure Tool</span>
+            </div>
+            <div id="mcp-form-fields">
+              <!-- Dynamic form fields here -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.hideAddMcpModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="App.mcpBack()" id="mcp-back-btn" style="display: none;">Back</button>
+        <button class="btn btn-primary" onclick="App.addMcpTool()" id="add-mcp-btn" style="display: none;">Add Tool</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container"></div>
+
+  <!-- Add WhatsApp Group Modal -->
+  <div id="add-whatsapp-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="App.hideAddWhatsAppModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add WhatsApp Group</h2>
+        <button class="modal-close" onclick="App.hideAddWhatsAppModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="whatsapp-group-id">Group ID *</label>
+          <input type="text" id="whatsapp-group-id" placeholder="e.g., 1203630123456789">
+          <p class="form-hint">Find this in Evolution API or WhatsApp group info</p>
+        </div>
+        <div class="form-group">
+          <label for="whatsapp-group-name">Group Name</label>
+          <input type="text" id="whatsapp-group-name" placeholder="e.g., TeemGenie Team">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.hideAddWhatsAppModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="App.addWhatsAppGroup()">Add Group</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Slack Channel Modal -->
+  <div id="add-slack-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="App.hideAddSlackModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add Slack Connect Channel</h2>
+        <button class="modal-close" onclick="App.hideAddSlackModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="slack-channel-id">Channel ID *</label>
+          <input type="text" id="slack-channel-id" placeholder="e.g., C0AQ4C19F25">
+        </div>
+        <div class="form-group">
+          <label for="slack-channel-name">Channel Name</label>
+          <input type="text" id="slack-channel-name" placeholder="e.g., #teemgenie-connect">
+        </div>
+        <div class="form-group">
+          <label for="slack-workspace">Workspace</label>
+          <input type="text" id="slack-workspace" placeholder="e.g., teemgenie.slack.com">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.hideAddSlackModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="App.addSlackChannel()">Add Channel</button>
+      </div>
+    </div>
+  </div>
+  <script src="/app.js?v=__BUILD_VERSION__" data-cfasync="false"></script>
+</body>
+</html>

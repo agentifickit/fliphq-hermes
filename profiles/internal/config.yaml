@@ -1,0 +1,247 @@
+# FlipHQ Hermes — Internal Team Profile
+# This is the default profile for the FlipHQ internal team.
+# Copy this to create new client profiles.
+
+model:
+  base_url: https://inference-api.nousresearch.com/v1
+  default: meituan/longcat-2.0:free
+  provider: nous
+
+agent:
+  max_turns: 150
+  reasoning_effort: medium
+  verbose: false
+
+terminal:
+  backend: local
+  cwd: .
+  timeout: 180
+  home_mode: auto
+  container_cpu: 1
+  container_memory: 5120
+  container_disk: 51200
+  container_persistent: true
+  docker_mount_cwd_to_workspace: false
+  lifetime_seconds: 300
+
+web:
+  backend: firecrawl
+  use_gateway: true
+
+browser:
+  inactivity_timeout: 120
+  cloud_provider: browser-use
+  use_gateway: true
+
+tool_loop_guardrails:
+  warnings_enabled: true
+  hard_stop_enabled: false
+  warn_after:
+    exact_failure: 2
+    same_tool_failure: 3
+    idempotent_no_progress: 2
+  hard_stop_after:
+    exact_failure: 5
+    same_tool_failure: 8
+    idempotent_no_progress: 5
+
+compression:
+  enabled: true
+  threshold: 0.5
+  target_ratio: 0.2
+  protect_last_n: 20
+  protect_first_n: 3
+  codex_gpt55_autoraise: true
+  codex_app_server_auto: native
+
+prompt_caching:
+  cache_ttl: 5m
+
+display:
+  compact: false
+  busy_input_mode: interrupt
+  bell_on_complete: false
+  show_reasoning: false
+  streaming: true
+  skin: default
+  interim_assistant_messages: true
+  background_process_notifications: all
+  busy_ack_detail: true
+  cleanup_progress: false
+  long_running_notifications: true
+  tool_progress: all
+
+tts:
+  provider: openai
+  use_gateway: true
+
+stt:
+  enabled: true
+  provider: openai
+  local:
+    model: base
+  openai:
+    model: whisper-1
+  use_gateway: true
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200
+  user_char_limit: 1375
+  flush_min_turns: 6
+  nudge_interval: 10
+
+delegation:
+  max_iterations: 50
+
+skills:
+  creation_nudge_interval: 15
+  disabled:
+    - polymarket
+    - research-paper-writing
+    - yuanbao
+    - teams-meeting-pipeline
+    - petdex
+    - airtable
+    - openhue
+
+# Slack channel-specific prompts (internal team channels)
+# Add client channels under their respective profile
+slack:
+  channel_prompts:
+    C0AAJSMGTHQ: >
+      You are observing the #teemgenie client channel. READ-ONLY MODE — NEVER post,
+      reply, react, or send any message here. You are invisible to the client.
+      You may read messages to gather context for AGENTS.md updates and the daily
+      refresh, but all your output and responses go to #teemgenie-internal only.
+      Guardrails: Never share contract terms, pricing, customer PII, service
+      agreements, retainer amounts, or billing information.
+    C0AQ4C19F25: >
+      You are working on the TeemGenie client account (#teemgenie-internal).
+      Client: TeemGenie Labs Pvt Ltd · Pillar: Flip Funnel (Demand / GTM enablement)
+      GTM Principal: Pulkit Narang · Account lead: Arpit
+      Guardrails: internal only — human ships externally. Never share contracts,
+      pricing specifics, PII, retainers, billing.
+
+code_execution:
+  max_tool_calls: 50
+  timeout: 300
+
+streaming:
+  enabled: false
+
+onboarding:
+  seen:
+    tool_progress_prompt: true
+    busy_input_prompt: true
+
+updates:
+  pre_update_backup: false
+  backup_keep: 5
+  non_interactive_local_changes: stash
+
+_config_version: 33
+group_sessions_per_user: true
+
+image_gen:
+  use_gateway: true
+
+known_plugin_toolsets:
+  cli:
+    - spotify
+  slack:
+    - spotify
+
+platform_toolsets:
+  cli:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - context_engine
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - x_search
+  discord:
+    - hermes-discord
+  google_chat:
+    - hermes-google_chat
+  homeassistant:
+    - hermes-homeassistant
+  qqbot:
+    - hermes-qqbot
+  signal:
+    - hermes-signal
+  slack:
+    - browser
+    - clarify
+    - code_execution
+    - computer_use
+    - context_engine
+    - cronjob
+    - delegation
+    - file
+    - image_gen
+    - memory
+    - session_search
+    - skills
+    - terminal
+    - todo
+    - tts
+    - video
+    - video_gen
+    - vision
+    - web
+    - slack_api
+    - yuanbao
+  teams:
+    - hermes-teams
+  telegram:
+    - hermes-telegram
+  whatsapp:
+    - hermes-whatsapp
+  yuanbao:
+    - hermes-yuanbao
+
+session_reset:
+  at_hour: 4
+  idle_minutes: 1440
+  mode: none
+
+video_gen:
+  provider: fal
+  use_gateway: true
+
+plugins:
+  enabled:
+    - fliphq-slack
+  disabled: []
+  entries:
+    fliphq-slack:
+      allow_tool_override: false
+
+# MCP servers — tokens go in .env, not here
+mcp_servers:
+  cloudflare:
+    url: https://mcp.cloudflare.com/mcp
+    connect_timeout: 60.0
+    auth: oauth
+    enabled: true
+  morgenruf:
+    url: https://api.morgenruf.dev/mcp
+    timeout: 180
+    connect_timeout: 60
+    enabled: true

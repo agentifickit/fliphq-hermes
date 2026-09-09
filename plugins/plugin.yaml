@@ -1,0 +1,9 @@
+name: fliphq-slack
+label: FlipHQ Slack Check-in
+kind: standalone
+version: 1.0.0
+description: >
+  FlipHQ morning check-in buttons. Registers Block Kit action handlers so a
+  button click ("Tell me how my day is looking") runs the fliphq-daily-tasks
+  skill for the clicking user with zero LLM tokens. Owned by FlipHQ.
+author: FlipHQ
