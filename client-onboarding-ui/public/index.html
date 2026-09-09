@@ -19,7 +19,7 @@
         <a href="#" onclick="showWhatsAppStatus(); return false;">WhatsApp Router</a>
       </nav>
       <div class="header-actions">
-        <button class="btn btn-primary" onclick="showCreateModal()">+ New Client</button>
+        <button class="btn btn-primary" onclick="App.showCreateModal()">+ New Client</button>
       </div>
     </div>
   </header>
@@ -41,11 +41,11 @@
 
   <!-- Onboarding Wizard Modal -->
   <div id="wizard-modal" class="modal" style="display: none;">
-    <div class="modal-overlay" onclick="hideWizardModal()"></div>
+    <div class="modal-overlay" onclick="App.hideWizardModal()"></div>
     <div class="modal-content modal-large">
       <div class="modal-header">
         <h2>Create New Client</h2>
-        <button class="modal-close" onclick="hideWizardModal()">×</button>
+        <button class="modal-close" onclick="App.hideWizardModal()">×</button>
       </div>
       
       <!-- Wizard Progress -->
@@ -89,7 +89,7 @@
           <div class="channels-section">
             <div class="section-header">
               <h3>📱 WhatsApp Groups</h3>
-              <button class="btn btn-primary btn-sm" onclick="wizardAddWhatsAppGroup()">+ Add Group</button>
+              <button class="btn btn-primary btn-sm" onclick="App.wizardAddWhatsAppGroup()">+ Add Group</button>
             </div>
             <div id="wizard-whatsapp-groups" class="channel-list">
               <p class="info-text">No WhatsApp groups added</p>
@@ -98,7 +98,7 @@
           <div class="channels-section">
             <div class="section-header">
               <h3>💬 Slack Connect</h3>
-              <button class="btn btn-primary btn-sm" onclick="wizardAddSlackChannel()">+ Add Channel</button>
+              <button class="btn btn-primary btn-sm" onclick="App.wizardAddSlackChannel()">+ Add Channel</button>
             </div>
             <div id="wizard-slack-channels" class="channel-list">
               <p class="info-text">No Slack channels added</p>
@@ -110,7 +110,7 @@
         <div id="wizard-content-3" class="wizard-content" style="display: none;">
           <div class="mcp-header">
             <h3>🔧 Select MCP Tools</h3>
-            <button class="btn btn-primary btn-sm" onclick="wizardAddMcpTool()">+ Add Tool</button>
+            <button class="btn btn-primary btn-sm" onclick="App.wizardAddMcpTool()">+ Add Tool</button>
           </div>
           <div id="wizard-mcp-tools" class="mcp-tools-grid">
             <p class="info-text">No MCP tools selected</p>
@@ -151,29 +151,29 @@
       </div>
       
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="hideWizardModal()">Cancel</button>
-        <button class="btn btn-secondary" onclick="wizardBack()" id="wizard-back-btn" style="display: none;">Back</button>
-        <button class="btn btn-primary" onclick="wizardNext()" id="wizard-next-btn">Next</button>
-        <button class="btn btn-success" onclick="wizardDeploy()" id="wizard-deploy-btn" style="display: none;">Deploy</button>
+        <button class="btn btn-secondary" onclick="App.hideWizardModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="App.wizardBack()" id="wizard-back-btn" style="display: none;">Back</button>
+        <button class="btn btn-primary" onclick="App.wizardNext()" id="wizard-next-btn">Next</button>
+        <button class="btn btn-success" onclick="App.wizardDeploy()" id="wizard-deploy-btn" style="display: none;">Deploy</button>
       </div>
     </div>
   </div>
 
   <!-- Client Detail Modal -->
   <div id="detail-modal" class="modal" style="display: none;">
-    <div class="modal-overlay" onclick="hideDetailModal()"></div>
+    <div class="modal-overlay" onclick="App.hideDetailModal()"></div>
     <div class="modal-content modal-large">
       <div class="modal-header">
         <h2 id="detail-title">Client Details</h2>
-        <button class="modal-close" onclick="hideDetailModal()">×</button>
+        <button class="modal-close" onclick="App.hideDetailModal()">×</button>
       </div>
       <div class="modal-body">
         <div class="tabs">
-          <button class="tab active" onclick="switchTab('overview')">Overview</button>
-          <button class="tab" onclick="switchTab('config')">Config</button>
-          <button class="tab" onclick="switchTab('channels')">Channels</button>
-          <button class="tab" onclick="switchTab('mcp')">MCP Tools</button>
-          <button class="tab" onclick="switchTab('logs')">Logs</button>
+          <button class="tab active" onclick="App.switchTab('overview')">Overview</button>
+          <button class="tab" onclick="App.switchTab('config')">Config</button>
+          <button class="tab" onclick="App.switchTab('channels')">Channels</button>
+          <button class="tab" onclick="App.switchTab('mcp')">MCP Tools</button>
+          <button class="tab" onclick="App.switchTab('logs')">Logs</button>
         </div>
         
         <div id="tab-overview" class="tab-content active">
@@ -206,15 +206,15 @@
             <div class="action-group">
               <span class="action-label">Gateway</span>
               <div class="action-buttons">
-                <button class="btn btn-success" onclick="startGateway()">Start</button>
-                <button class="btn btn-danger" onclick="stopGateway()">Stop</button>
-                <button class="btn btn-warning" onclick="restartGateway()">Restart</button>
+                <button class="btn btn-success" onclick="App.startGateway()">Start</button>
+                <button class="btn btn-danger" onclick="App.stopGateway()">Stop</button>
+                <button class="btn btn-warning" onclick="App.restartGateway()">Restart</button>
               </div>
             </div>
             <div class="action-group">
               <span class="action-label">Code</span>
               <div class="action-buttons">
-                <button class="btn btn-primary" onclick="deployClient()">Deploy</button>
+                <button class="btn btn-primary" onclick="App.deployClient()">Deploy</button>
               </div>
             </div>
           </div>
@@ -240,14 +240,14 @@
             <label>SOUL.md</label>
             <textarea id="detail-soul-md" class="code-editor" rows="10"></textarea>
           </div>
-          <button class="btn btn-primary" onclick="saveConfig()">Save Changes</button>
+          <button class="btn btn-primary" onclick="App.saveConfig()">Save Changes</button>
         </div>
         
         <div id="tab-channels" class="tab-content">
           <div class="channels-section">
             <div class="section-header">
               <h3>📱 WhatsApp Groups</h3>
-              <button class="btn btn-primary" onclick="showAddWhatsAppGroup()">+ Add Group</button>
+              <button class="btn btn-primary" onclick="App.showAddWhatsAppGroup()">+ Add Group</button>
             </div>
             <div id="whatsapp-groups-list" class="channel-list">
               <!-- WhatsApp groups rendered here -->
@@ -257,7 +257,7 @@
           <div class="channels-section">
             <div class="section-header">
               <h3>💬 Slack Connect</h3>
-              <button class="btn btn-primary" onclick="showAddSlackChannel()">+ Add Channel</button>
+              <button class="btn btn-primary" onclick="App.showAddSlackChannel()">+ Add Channel</button>
             </div>
             <div id="slack-channels-list" class="channel-list">
               <!-- Slack channels rendered here -->
@@ -267,7 +267,7 @@
         
         <div id="tab-logs" class="tab-content">
           <div class="log-controls">
-            <button class="btn btn-secondary" onclick="refreshLogs()">Refresh</button>
+            <button class="btn btn-secondary" onclick="App.refreshLogs()">Refresh</button>
             <label>Lines: <input type="number" id="log-lines" value="100" min="10" max="1000"></label>
           </div>
           <div id="gateway-logs" class="log-viewer">Loading...</div>
@@ -276,7 +276,7 @@
         <div id="tab-mcp" class="tab-content">
           <div class="mcp-header">
             <h3>🔧 MCP Tools</h3>
-            <button class="btn btn-primary" onclick="showAddMcpTool()">+ Add Tool</button>
+            <button class="btn btn-primary" onclick="App.showAddMcpTool()">+ Add Tool</button>
           </div>
           <div id="mcp-tools-list" class="mcp-tools-grid">
             <!-- MCP tools rendered here -->
@@ -288,11 +288,11 @@
 
   <!-- Add MCP Tool Modal -->
   <div id="add-mcp-modal" class="modal" style="display: none;">
-    <div class="modal-overlay" onclick="hideAddMcpModal()"></div>
+    <div class="modal-overlay" onclick="App.hideAddMcpModal()"></div>
     <div class="modal-content modal-large">
       <div class="modal-header">
         <h2>Add MCP Tool</h2>
-        <button class="modal-close" onclick="hideAddMcpModal()">×</button>
+        <button class="modal-close" onclick="App.hideAddMcpModal()">×</button>
       </div>
       <div class="modal-body">
         <div class="mcp-wizard">
@@ -320,9 +320,9 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="hideAddMcpModal()">Cancel</button>
-        <button class="btn btn-secondary" onclick="mcpBack()" id="mcp-back-btn" style="display: none;">Back</button>
-        <button class="btn btn-primary" onclick="addMcpTool()" id="add-mcp-btn" style="display: none;">Add Tool</button>
+        <button class="btn btn-secondary" onclick="App.hideAddMcpModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="App.mcpBack()" id="mcp-back-btn" style="display: none;">Back</button>
+        <button class="btn btn-primary" onclick="App.addMcpTool()" id="add-mcp-btn" style="display: none;">Add Tool</button>
       </div>
     </div>
   </div>
@@ -332,11 +332,11 @@
 
   <!-- Add WhatsApp Group Modal -->
   <div id="add-whatsapp-modal" class="modal" style="display: none;">
-    <div class="modal-overlay" onclick="hideAddWhatsAppModal()"></div>
+    <div class="modal-overlay" onclick="App.hideAddWhatsAppModal()"></div>
     <div class="modal-content">
       <div class="modal-header">
         <h2>Add WhatsApp Group</h2>
-        <button class="modal-close" onclick="hideAddWhatsAppModal()">×</button>
+        <button class="modal-close" onclick="App.hideAddWhatsAppModal()">×</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -350,19 +350,19 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="hideAddWhatsAppModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="addWhatsAppGroup()">Add Group</button>
+        <button class="btn btn-secondary" onclick="App.hideAddWhatsAppModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="App.addWhatsAppGroup()">Add Group</button>
       </div>
     </div>
   </div>
 
   <!-- Add Slack Channel Modal -->
   <div id="add-slack-modal" class="modal" style="display: none;">
-    <div class="modal-overlay" onclick="hideAddSlackModal()"></div>
+    <div class="modal-overlay" onclick="App.hideAddSlackModal()"></div>
     <div class="modal-content">
       <div class="modal-header">
         <h2>Add Slack Connect Channel</h2>
-        <button class="modal-close" onclick="hideAddSlackModal()">×</button>
+        <button class="modal-close" onclick="App.hideAddSlackModal()">×</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -379,8 +379,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="hideAddSlackModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="addSlackChannel()">Add Channel</button>
+        <button class="btn btn-secondary" onclick="App.hideAddSlackModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="App.addSlackChannel()">Add Channel</button>
       </div>
     </div>
   </div>

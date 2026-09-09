@@ -1076,3 +1076,52 @@ main {
   color: var(--accent-success);
   margin-top: 0.25rem;
 }
+
+/* Loading States */
+.spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.loading.spinner {
+  display: block;
+}
+
+/* Confirmation Modal */
+.modal-small {
+  max-width: 400px;
+}
+
+.confirm-modal .modal-body p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Error States */
+.error-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.error-state .error-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}

@@ -1,0 +1,7 @@
+tools:
+  posthog:
+    api_key: asdasdasd
+    project_id: asdasdasd
+    enabled: true
+    added_at: '2026-09-09T18:20:08.269Z'
+    updated_at: '2026-09-09T18:20:08.269Z'
