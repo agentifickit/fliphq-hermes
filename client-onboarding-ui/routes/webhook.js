@@ -15,12 +15,12 @@ const CLIENTS_DIR = path.join(REPO_ROOT, 'profiles', 'clients');
 const router = Router();
 
 // Health check
-router.get('/health', (req, res) => {
+router.get('/webhook/health', (req, res) => {
   res.json({ status: 'ok', service: 'evolution-webhook' });
 });
 
 // Evolution API webhook endpoint
-router.post('/webhook/whatsapp', async (req, res) => {
+router.post('/', async (req, res) => {
   // Always return 200 to Evolution (otherwise it retries)
   res.json({ ok: true });
 
