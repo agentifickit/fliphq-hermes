@@ -167,7 +167,7 @@ const App = {
       
       await this.loadGatewayStatus(slug);
       
-      if (document.getElementById('detail-channels')) {
+      if (document.getElementById('tab-channels')) {
         await this.loadChannels(slug);
       }
       
@@ -234,9 +234,11 @@ const App = {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     
-    event.target.classList.add('active');
-    document.getElementById(`tab-${tab}`).classList.add('active');
-    
+    const tabBtn = document.querySelector(`.tab[onclick*="'${tab}'"]`);
+    if (tabBtn) tabBtn.classList.add('active');
+    const tabContent = document.getElementById(`tab-${tab}`);
+    if (tabContent) tabContent.classList.add('active');
+
     if (tab === 'channels' && this.currentSlug) {
       this.loadChannels(this.currentSlug);
     } else if (tab === 'mcp' && this.currentSlug) {
@@ -245,7 +247,6 @@ const App = {
       this.refreshLogs();
     }
   },
-
   // ===== Channels =====
   async loadChannels(slug) {
     try {
@@ -253,7 +254,7 @@ const App = {
       const data = await res.json();
       const channels = data.channels;
       
-      const waList = document.getElementById('detail-whatsapp-groups') || document.getElementById('wizard-whatsapp-groups');
+      const waList = document.getElementById('whatsapp-groups-list') || document.getElementById('wizard-whatsapp-groups');
       if (channels.whatsapp.groups.length > 0) {
         const html = channels.whatsapp.groups.map(g => `
           <div class="channel-item">
@@ -264,6 +265,19 @@ const App = {
           </div>
         `).join('');
         if (waList) waList.innerHTML = html;
+      }
+      
+      const slackList = document.getElementById('slack-channels-list') || document.getElementById('wizard-slack-channels');
+      if (channels.slack_connect.channels.length > 0) {
+        const html = channels.slack_connect.channels.map(c => `
+          <div class="channel-item">
+            <div>
+              <div>${this.escapeHtml(c.name)}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">${c.channelId}</div>
+            </div>
+          </div>
+        `).join('');
+        if (slackList) slackList.innerHTML = html;
       }
     } catch (err) {
       this.showToast('Failed to load channels', 'error');
